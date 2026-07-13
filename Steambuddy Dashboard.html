@@ -1,0 +1,2620 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SteamBuddy — Business Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=JetBrains+Mono:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      --bg: #040810;
+      --bg2: #060d1a;
+      --s1: #080f1e;
+      --s2: #0c1526;
+      --s3: #101c30;
+      --s4: #15243a;
+      --bd: rgba(56, 139, 253, 0.12);
+      --bd2: rgba(56, 139, 253, 0.22);
+      --bd3: rgba(56, 139, 253, 0.35);
+      --bl: #58a6ff;
+      --bl2: #388bfd;
+      --bl3: rgba(56, 139, 253, 0.08);
+      --blg: rgba(56, 139, 253, 0.18);
+      --gn: #3fb950;
+      --gnd: rgba(63, 185, 80, 0.1);
+      --gn2: rgba(63, 185, 80, 0.22);
+      --rd: #f85149;
+      --rdd: rgba(248, 81, 73, 0.1);
+      --am: #d29922;
+      --amd: rgba(210, 153, 34, 0.1);
+      --pu: #bc8cff;
+      --tl: #39c5cf;
+      --or: #db6d28;
+      --tx: #f0f6fc;
+      --tx2: #cdd9e5;
+      --txm: #909dab;
+      --txd: #768390;
+      --fn: 'Inter', system-ui, sans-serif;
+      --mn: 'JetBrains Mono', monospace;
+      --r: 12px;
+      --r2: 8px;
+      --r3: 6px;
+      --sh: 0 0 0 1px rgba(56, 139, 253, 0.08), 0 8px 32px rgba(0, 0, 0, 0.5);
+      --sh2: 0 0 0 1px rgba(56, 139, 253, 0.15), 0 16px 48px rgba(0, 0, 0, 0.6);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html {
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale
+    }
+
+    body {
+      font-family: var(--fn);
+      background: var(--bg);
+      color: var(--tx2);
+      min-height: 100vh;
+      overflow-x: hidden
+    }
+
+    /* — TOPBAR — */
+    .topbar {
+      background: rgba(4, 8, 16, 0.92);
+      border-bottom: 1px solid var(--bd);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 300;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, rgba(56, 139, 253, 0.3) 0%, rgba(56, 139, 253, 0.1) 100%);
+      border: 1px solid var(--bd2);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mn);
+      font-size: 11px;
+      color: var(--bl);
+      font-weight: 500;
+      box-shadow: 0 0 12px rgba(56, 139, 253, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)
+    }
+
+    .brand-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--tx);
+      letter-spacing: .02em
+    }
+
+    .brand-name em {
+      font-style: normal;
+      color: var(--bl)
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      color: var(--txm);
+      margin-top: 1px;
+      letter-spacing: .02em
+    }
+
+    .nav {
+      display: flex;
+      gap: 1px;
+      background: rgba(13, 21, 38, 0.8);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      padding: 3px
+    }
+
+    .nb {
+      padding: 5px 14px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--txm);
+      border: none;
+      background: transparent;
+      font-family: var(--fn);
+      transition: all .18s ease;
+      white-space: nowrap;
+      border-top: 1px solid transparent;
+      border-bottom: 1px solid transparent;
+      border-left: none;
+      border-right: none
+    }
+
+    .nb:hover {
+      color: var(--bl);
+      background: var(--bl3);
+      transform: translateY(-1px)
+    }
+
+    .nb.on {
+      background: linear-gradient(135deg, rgba(56, 139, 253, 0.25), rgba(56, 139, 253, 0.12));
+      color: var(--tx);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 1px 1px 1px rgba(255, 255, 255, 0.08), inset -1px -1px 2px rgba(0, 0, 0, 0.3), 0 0 12px rgba(56, 139, 253, 0.12)
+    }
+
+    .nb:active {
+      transform: translateY(1px);
+      box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5), inset -1px -1px 2px rgba(255, 255, 255, 0.05);
+      border-top: 1px solid rgba(0, 0, 0, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05)
+    }
+
+    .topbar-r {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .pills {
+      display: flex;
+      gap: 3px
+    }
+
+    .pill {
+      font-size: 10px;
+      padding: 4px 11px;
+      border-radius: 20px;
+      border: 1px solid var(--bd);
+      color: var(--txm);
+      background: transparent;
+      cursor: pointer;
+      transition: all .18s;
+      user-select: none;
+      font-family: var(--fn);
+      letter-spacing: .02em
+    }
+
+    .pill:hover {
+      border-color: var(--bl2);
+      color: var(--bl)
+    }
+
+    .pill.on {
+      background: linear-gradient(135deg, rgba(56, 139, 253, 0.2), rgba(56, 139, 253, 0.08));
+      color: var(--tx);
+      border-color: var(--bd2);
+      box-shadow: 0 0 8px rgba(56, 139, 253, 0.1)
+    }
+
+    .pulsedot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gn);
+      box-shadow: 0 0 8px var(--gn);
+      animation: pls 2s infinite;
+      flex-shrink: 0
+    }
+
+    @keyframes pls {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(.85)
+      }
+    }
+
+    /* — PAGE HEADER — */
+    .pghead {
+      padding: 16px 24px 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px
+    }
+
+    .pghead-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--tx);
+      letter-spacing: -.02em
+    }
+
+    .pghead-title span {
+      color: var(--bl)
+    }
+
+    .pghead-sub {
+      font-size: 11px;
+      color: var(--txm);
+      margin-top: 3px
+    }
+
+    .pghead-tag {
+      font-size: 10px;
+      color: var(--txm);
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-family: var(--mn);
+      letter-spacing: .03em;
+      white-space: nowrap
+    }
+
+    /* — PAGES — */
+    .pg {
+      display: none;
+      padding: 14px 24px 32px;
+      animation: pgIn .35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0
+    }
+
+    .pg.on {
+      display: block
+    }
+
+    @keyframes pgIn {
+      0% {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    /* — GRIDS — */
+    .g4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+      perspective: 1200px
+    }
+
+    .g2w {
+      display: grid;
+      grid-template-columns: 1.65fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+      perspective: 1200px
+    }
+
+    .g3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+      perspective: 1200px
+    }
+
+    .g2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+      perspective: 1200px
+    }
+
+    .mb {
+      margin-bottom: 12px
+    }
+
+    /* — CARDS — */
+    .card {
+      background: linear-gradient(135deg, var(--s1) 0%, var(--s2) 100%);
+      border-radius: var(--r);
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      transition: all .3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 1px 1px 1px rgba(255, 255, 255, 0.06), inset -1px -1px 2px rgba(0, 0, 0, 0.5);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(0, 0, 0, 0.5);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      transform-style: preserve-3d
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 60%);
+      pointer-events: none;
+      border-radius: var(--r)
+    }
+
+    .card:hover {
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 139, 253, 0.15), inset 1px 1px 2px rgba(255, 255, 255, 0.12), inset -1px -1px 3px rgba(0, 0, 0, 0.6);
+      transform: translateY(-4px) rotateX(1.5deg) rotateY(-0.5deg);
+      z-index: 10
+    }
+
+    .ct {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--txm);
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .ctitle {
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .ctitle::before {
+      content: '';
+      display: inline-block;
+      width: 2px;
+      height: 11px;
+      background: var(--bl2);
+      border-radius: 2px;
+      opacity: .7
+    }
+
+    /* — KPI CARDS — */
+    .kpi {
+      padding: 18px 20px;
+      cursor: default
+    }
+
+    .kpi::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+      border-radius: var(--r) var(--r) 0 0
+    }
+
+    .kpi-bl::before {
+      background: linear-gradient(90deg, var(--bl2), transparent)
+    }
+
+    .kpi-or::before {
+      background: linear-gradient(90deg, var(--or), transparent)
+    }
+
+    .kpi-gn::before {
+      background: linear-gradient(90deg, var(--gn), transparent)
+    }
+
+    .kpi-pu::before {
+      background: linear-gradient(90deg, var(--pu), transparent)
+    }
+
+    .kpi::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 80px;
+      height: 80px;
+      border-radius: 0 var(--r) 0 80px;
+      background: radial-gradient(circle at top right, rgba(56, 139, 253, 0.04), transparent 70%);
+      pointer-events: none
+    }
+
+    .kpi-label {
+      font-size: 9px;
+      color: var(--tx2);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 10px;
+      font-weight: 700
+    }
+
+    .kpi-val {
+      font-size: 26px;
+      font-weight: 300;
+      color: var(--tx);
+      line-height: 1;
+      margin-bottom: 8px;
+      font-family: var(--mn);
+      letter-spacing: -.03em;
+      transition: all .3s ease
+    }
+
+    .kpi-sub {
+      font-size: 10px;
+      color: var(--txm);
+      display: flex;
+      align-items: center;
+      gap: 4px
+    }
+
+    .pos {
+      color: var(--gn) !important
+    }
+
+    .neg {
+      color: var(--rd) !important
+    }
+
+    .neu {
+      color: var(--txm) !important
+    }
+
+    /* — SECTION LABEL — */
+    .sh {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--txm);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 18px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--bd)
+    }
+
+    .sh::before {
+      content: '';
+      width: 3px;
+      height: 13px;
+      background: linear-gradient(to bottom, var(--bl2), transparent);
+      border-radius: 2px
+    }
+
+    /* — CHART BOX — */
+    .cb {
+      position: relative;
+      width: 100%
+    }
+
+    .cb.h160 {
+      height: 160px
+    }
+
+    .cb.h190 {
+      height: 190px
+    }
+
+    .cb.h200 {
+      height: 200px
+    }
+
+    .cb.h220 {
+      height: 220px
+    }
+
+    .cb.h250 {
+      height: 250px
+    }
+
+    .cb.h90 {
+      height: 90px
+    }
+
+    /* — LEGEND — */
+    .leg {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 10px;
+      flex-wrap: wrap
+    }
+
+    .li {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--txm)
+    }
+
+    .ld {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0
+    }
+
+    .ll {
+      width: 14px;
+      height: 2px;
+      flex-shrink: 0
+    }
+
+    /* — GPM ROWS — */
+    .gpmr {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 7px;
+      padding: 9px 12px;
+      background: var(--s3);
+      border-radius: var(--r2);
+      border: 1px solid var(--bd);
+      transition: all .2s
+    }
+
+    .gpmr:hover {
+      border-color: var(--bd2);
+      background: var(--s4)
+    }
+
+    .gpmr-mo {
+      font-size: 10px;
+      color: var(--tx2);
+      width: 44px;
+      flex-shrink: 0;
+      font-weight: 600
+    }
+
+    .gpmr-vals {
+      flex: 1;
+      display: flex;
+      gap: 14px
+    }
+
+    .gstat {
+      display: flex;
+      flex-direction: column
+    }
+
+    .gstat-l {
+      font-size: 9px;
+      color: var(--txm);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-weight: 600
+    }
+
+    .gstat-v {
+      font-size: 12px;
+      font-weight: 500;
+      font-family: var(--mn)
+    }
+
+    .gbadge {
+      font-size: 10px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-weight: 700;
+      flex-shrink: 0;
+      font-family: var(--mn);
+      letter-spacing: .02em
+    }
+
+    .gbg {
+      background: var(--gnd);
+      color: var(--gn);
+      border: 1px solid var(--gn2)
+    }
+
+    .gbr {
+      background: var(--rdd);
+      color: var(--rd);
+      border: 1px solid rgba(248, 81, 73, 0.2)
+    }
+
+    /* — RATIO BARS — */
+    .rrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px
+    }
+
+    .rmo {
+      font-size: 10px;
+      color: var(--txm);
+      width: 44px;
+      flex-shrink: 0;
+      font-weight: 600
+    }
+
+    .rtrack {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 6px;
+      height: 12px;
+      position: relative;
+      overflow: visible;
+      box-shadow: inset 1px 2px 4px rgba(0, 0, 0, 0.6), inset -1px -1px 1px rgba(255, 255, 255, 0.03)
+    }
+
+    .rfill {
+      height: 12px;
+      border-radius: 6px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: width .6s ease;
+      box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.25), inset 0 -2px 3px rgba(0, 0, 0, 0.25)
+    }
+
+    .rthresh {
+      position: absolute;
+      top: -3px;
+      height: 18px;
+      width: 1.5px;
+      background: var(--rd);
+      left: 70%;
+      opacity: .6;
+      border-radius: 1px
+    }
+
+    .rval {
+      font-size: 11px;
+      width: 40px;
+      text-align: right;
+      font-family: var(--mn);
+      font-weight: 600
+    }
+
+    /* — HBARS — */
+    .hb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px
+    }
+
+    .hbn {
+      font-size: 11px;
+      color: var(--tx2);
+      width: 155px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0
+    }
+
+    .hbt {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+      box-shadow: inset 1px 2px 4px rgba(0, 0, 0, 0.6), inset -1px -1px 1px rgba(255, 255, 255, 0.03)
+    }
+
+    .hbf {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .5s ease;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), inset 0 -1px 2px rgba(0, 0, 0, 0.2)
+    }
+
+    .hbv {
+      font-size: 10px;
+      color: var(--txm);
+      width: 54px;
+      text-align: right;
+      font-family: var(--mn)
+    }
+
+    /* — BEP CHIPS — */
+    .bep-chips {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 12px
+    }
+
+    .bchip {
+      flex: 1;
+      padding: 9px 8px;
+      border-radius: var(--r2);
+      text-align: center;
+      border: 1px solid;
+      transition: all .2s
+    }
+
+    .bca {
+      background: rgba(63, 185, 80, 0.05);
+      border-color: rgba(63, 185, 80, 0.2)
+    }
+
+    .bcb {
+      background: rgba(248, 81, 73, 0.05);
+      border-color: rgba(248, 81, 73, 0.2)
+    }
+
+    .bchip:hover {
+      transform: translateY(-1px)
+    }
+
+    /* — DONUT WRAP — */
+    .dw {
+      display: flex;
+      align-items: center;
+      gap: 16px
+    }
+
+    .dl {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .dr {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--tx2)
+    }
+
+    .dd {
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
+      flex-shrink: 0
+    }
+
+    /* — MoM STATS — */
+    .mom-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 11px;
+      border-top: 1px solid var(--bd)
+    }
+
+    .mom-item {
+      text-align: center
+    }
+
+    .mom-lbl {
+      font-size: 9px;
+      color: var(--txm);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 4px;
+      font-weight: 600
+    }
+
+    .mom-val {
+      font-size: 15px;
+      font-weight: 600;
+      font-family: var(--mn)
+    }
+
+    /* — INFO INSET — */
+    .inset {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .ins {
+      flex: 1;
+      background: var(--s3);
+      border: 1px solid var(--bd);
+      border-radius: var(--r2);
+      padding: 8px 10px
+    }
+
+    .ins-l {
+      font-size: 9px;
+      color: var(--txm);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 4px;
+      font-weight: 600
+    }
+
+    .ins-v {
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--mn)
+    }
+
+    /* — ALERT BANNER — */
+    .alert-am {
+      margin-top: 10px;
+      padding: 9px 12px;
+      background: rgba(210, 153, 34, 0.06);
+      border: 1px solid rgba(210, 153, 34, 0.2);
+      border-radius: var(--r2);
+      font-size: 11px;
+      color: var(--am);
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      line-height: 1.5
+    }
+
+
+    /* VENDOR ANALYSIS */
+    .va-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .va-vend {
+      background: var(--bg2);
+      border: 1px solid var(--bd);
+      border-radius: 8px;
+      padding: 12px 15px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.03), 0 4px 10px rgba(0, 0, 0, 0.2);
+      transform-style: preserve-3d;
+    }
+
+    .va-vend:hover {
+      background: var(--bg3);
+      border-color: var(--bd2);
+      transform: translateY(-2px) rotateX(1deg);
+      box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.05), 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .va-vend.open {
+      border-color: rgba(56, 139, 253, 0.4);
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.6), 0 0 0 rgba(0, 0, 0, 0);
+      background: rgba(13, 17, 23, 0.6);
+      transform: translateY(0) rotateX(0deg);
+    }
+
+    .va-vend-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .va-vend-n {
+      color: var(--tx);
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .va-vend-n::before {
+      content: '▶';
+      font-size: 10px;
+      color: var(--txm);
+      transition: transform 0.2s;
+    }
+
+    .va-vend.open .va-vend-n::before {
+      transform: rotate(90deg);
+      color: var(--bl);
+    }
+
+    .va-vend-stats {
+      color: var(--txm);
+      font-size: 12px;
+    }
+
+    .va-hist {
+      display: none;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--bd2);
+    }
+
+    .va-vend.open .va-hist {
+      display: block;
+    }
+
+    .va-hist-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      background: rgba(0, 0, 0, 0.2);
+      margin-bottom: 4px;
+      border-radius: 4px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .va-hist-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .va-date {
+      color: var(--tx2);
+      font-size: 12px;
+      width: 100px;
+      font-weight: 500;
+    }
+
+    .va-amt {
+      color: var(--tx);
+      font-weight: 600;
+      font-family: var(--mn);
+      text-align: right;
+      width: 100px;
+    }
+
+    .va-var {
+      font-size: 11px;
+      font-weight: 600;
+      width: 80px;
+      text-align: right;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .va-var.pos {
+      color: var(--rd);
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid rgba(248, 81, 73, 0.2);
+    }
+
+    .va-var.neg {
+      color: var(--gn);
+      background: rgba(63, 185, 80, 0.1);
+      border: 1px solid rgba(63, 185, 80, 0.2);
+    }
+
+    /* — TABLES — */
+    .tctrl {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .si {
+      background: var(--s3);
+      border: 1px solid var(--bd);
+      padding: 7px 13px;
+      border-radius: var(--r2);
+      color: var(--tx);
+      width: 260px;
+      font-size: 11px;
+      font-family: var(--fn);
+      outline: none;
+      transition: border-color .2s
+    }
+
+    .si:focus {
+      border-color: var(--bd2);
+      box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.06)
+    }
+
+    .si::placeholder {
+      color: var(--txd)
+    }
+
+    .tw {
+      overflow-x: auto
+    }
+
+    .dt {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    .dt thead th {
+      font-size: 9px;
+      color: var(--bl);
+      font-weight: 700;
+      padding: 9px 0;
+      text-align: left;
+      border-bottom: 1px solid var(--bd);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      white-space: nowrap
+    }
+
+    .dt thead th.r {
+      text-align: right
+    }
+
+    .dt tbody td {
+      font-size: 11px;
+      color: var(--tx2);
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      vertical-align: middle
+    }
+
+    .dt tbody td.r {
+      text-align: right;
+      font-family: var(--mn)
+    }
+
+    .dt tbody tr:hover td {
+      background: rgba(56, 139, 253, 0.03);
+      cursor: pointer
+    }
+
+    .dt tbody tr:last-child td {
+      border-bottom: none
+    }
+
+    .sbadge {
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-family: var(--mn);
+      font-weight: 600
+    }
+
+    .shi {
+      background: rgba(56, 139, 253, 0.12);
+      color: var(--bl)
+    }
+
+    .smd {
+      background: rgba(56, 139, 253, 0.07);
+      color: rgba(88, 166, 255, .7)
+    }
+
+    /* — SCROLLBAR — */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--s4);
+      border-radius: 3px
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--bd3)
+    }
+
+    /* — FOOTER — */
+    .footer {
+      background: var(--s1);
+      border-top: 1px solid var(--bd);
+      padding: 11px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px
+    }
+
+    .ft {
+      font-size: 10px;
+      color: var(--txm);
+      letter-spacing: .02em
+    }
+
+    .agentica-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 11px 4px 8px;
+      background: linear-gradient(135deg, rgba(56, 139, 253, 0.08), rgba(56, 139, 253, 0.04));
+      border: 1px solid rgba(56, 139, 253, 0.2);
+      border-radius: 20px;
+      font-size: 10px;
+      color: var(--txm);
+      font-family: var(--fn);
+      letter-spacing: .02em;
+      cursor: default;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .agentica-badge:hover {
+      border-color: rgba(56, 139, 253, 0.45);
+      color: var(--tx2);
+      background: linear-gradient(135deg, rgba(56, 139, 253, 0.14), rgba(56, 139, 253, 0.07));
+      box-shadow: 0 0 12px rgba(56, 139, 253, 0.12);
+    }
+
+    .agentica-badge .abdot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #58a6ff, #388bfd);
+      box-shadow: 0 0 6px rgba(56, 139, 253, 0.7);
+      flex-shrink: 0;
+    }
+
+    .agentica-badge .abtext {
+      font-weight: 500;
+    }
+
+    .agentica-badge .abtext em {
+      font-style: normal;
+      color: var(--bl);
+      font-weight: 600;
+    }
+
+    .ft-sep {
+      width: 1px;
+      height: 14px;
+      background: var(--bd);
+      margin: 0 6px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-brand .fb-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #58a6ff, #388bfd);
+      box-shadow: 0 0 7px rgba(56, 139, 253, 0.6);
+    }
+
+    /* — MISC — */
+    .mono {
+      font-family: var(--mn)
+    }
+
+    .vdiv {
+      width: 1px;
+      height: 20px;
+      background: var(--bd)
+    }
+
+    /* — MONTH DROPDOWN — */
+    .month-dd {
+      position: relative
+    }
+
+    .month-dd-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(13, 21, 38, 0.85);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(0, 0, 0, 0.5);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+      border-radius: 9px;
+      color: var(--tx);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--fn);
+      transition: all .2s;
+      min-width: 148px;
+      justify-content: space-between;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 1px 1px 1px rgba(255, 255, 255, 0.05), inset -1px -1px 2px rgba(0, 0, 0, 0.4)
+    }
+
+    .month-dd-btn:hover {
+      color: var(--bl);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 139, 253, 0.15), inset 1px 1px 1px rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px)
+    }
+
+    .month-dd-btn:active {
+      transform: translateY(1px);
+      box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+      border-top: 1px solid rgba(0, 0, 0, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05)
+    }
+
+    .month-dd-btn svg {
+      opacity: .6;
+      flex-shrink: 0;
+      transition: transform .2s
+    }
+
+    .month-dd.open .month-dd-btn svg {
+      transform: rotate(180deg)
+    }
+
+    .month-dd-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      background: linear-gradient(135deg, #0c1526 0%, #080f1e 100%);
+      border: 1px solid var(--bd2);
+      border-radius: 11px;
+      padding: 6px;
+      min-width: 170px;
+      backdrop-filter: blur(20px);
+      z-index: 500;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(56, 139, 253, 0.08);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      animation: pgIn .15s ease
+    }
+
+    .month-dd.open .month-dd-menu {
+      display: flex
+    }
+
+    .mopt {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 11px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 11px;
+      color: var(--tx2);
+      transition: all .15s;
+      user-select: none;
+      font-weight: 500
+    }
+
+    .mopt:hover {
+      background: rgba(56, 139, 253, 0.14);
+      color: var(--tx)
+    }
+
+    .mopt.all-opt {
+      border-bottom: 1px solid var(--bd);
+      border-radius: 0;
+      margin-bottom: 2px;
+      padding-bottom: 10px;
+      color: var(--txm);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .06em
+    }
+
+    .mopt input[type=checkbox] {
+      accent-color: var(--bl);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      flex-shrink: 0
+    }
+
+    .mcnt {
+      font-size: 9px;
+      color: var(--txm);
+      padding: 4px 11px 2px;
+      text-transform: uppercase;
+      letter-spacing: .06em
+    }
+
+    /* = = = = = = = = RESPONSIVE MOBILE & TABLET = = = = = = = = */
+    @media (max-width: 900px) {
+
+      .g4,
+      .g2w,
+      .g3,
+      .g2 {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        height: auto;
+        padding: 15px 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .nav {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .nb {
+        flex-shrink: 0;
+      }
+
+      .topbar-r {
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 5px;
+      }
+
+      .pghead {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        height: auto;
+        padding: 20px;
+      }
+
+      .tctrl {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .tctrl .si,
+      .tctrl select {
+        width: 100% !important;
+        flex: none !important;
+      }
+
+      .va-vend-hdr {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .dw {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .dr {
+        align-self: flex-start;
+      }
+
+      .gpmr {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+        height: auto;
+        padding: 12px 14px;
+      }
+
+      .gpmr-n {
+        width: 100%;
+        margin-bottom: 5px;
+      }
+
+      .gpmr-vals {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .rrow {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .hb {
+        flex-wrap: wrap;
+      }
+
+      .hbn {
+        width: 100% !important;
+        margin-bottom: 4px;
+      }
+
+      .hbt {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">SB</div>
+      <div>
+        <div class="brand-name">STEAM <em>BUDDY</em> <span
+            style="color:var(--txd);font-weight:300;margin:0 4px">|</span> <span
+            style="font-size:12px;color:var(--txm);font-weight:400">Business Intelligence</span></div>
+        <div class="brand-sub">Ring Road No.1, Khushalpur Chowk, Raipur C.G. · GSTIN: 22AADCS4159M1ZN</div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="nb on" onclick="switchPage('overview',this)">📊 Overview</button>
+      <button class="nb" onclick="switchPage('revenue',this)">📈 Revenue</button>
+      <button class="nb" onclick="switchPage('purchase',this)">🛒 Purchase</button>
+      <button class="nb" onclick="switchPage('customers',this)">👥 Customers</button>
+      <button class="nb" onclick="switchPage('invoices',this)">🧾 Invoices</button>
+    </div>
+    <div class="topbar-r">
+      <div class="agentica-badge" title="This dashboard was designed and built by Agentica AI Labs">
+        <div class="abdot"></div><span class="abtext">Built by <em>Agentica AI Labs</em></span>
+      </div>
+      <div class="vdiv"></div>
+      <div class="pulsedot"></div>
+    </div>
+  </header>
+
+  <!-- PAGE HEADER -->
+  <div class="pghead">
+    <div>
+      <div class="pghead-title">Overall Company Report — <span id="period-lbl">Nov 2025 – Feb 2026</span></div>
+      <div class="pghead-sub">Project + Retail · 382 Invoices · 141 Customers · Solar Energy Distribution</div>
+    </div>
+    <div class="month-dd" id="monthDrop">
+      <button class="month-dd-btn" id="monthBtn" onclick="toggleDrop(event)">
+        <span id="monthBtnLbl">All Months</span>
+        <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="month-dd-menu" id="monthMenu">
+        <label class="mopt all-opt" id="opt-all"><input type="checkbox" id="chk-all" checked onchange="selectAllMonths(this)"> All Months</label>
+        <div class="mcnt">Select months</div>
+        <label class="mopt"><input type="checkbox" id="chk-nov" onchange="toggleMonth('nov',this)"> Nov '25</label>
+        <label class="mopt"><input type="checkbox" id="chk-dec" onchange="toggleMonth('dec',this)"> Dec '25</label>
+        <label class="mopt"><input type="checkbox" id="chk-jan" onchange="toggleMonth('jan',this)"> Jan '26</label>
+        <label class="mopt"><input type="checkbox" id="chk-feb" onchange="toggleMonth('feb',this)"> Feb '26</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- =Â=Â=Â=Â=Â=Â=Â OVERVIEW =Â=Â=Â=Â=Â=Â=Â -->
+  <div id="pg-overview" class="pg on">
+
+    <div class="g4" style="margin-top:14px">
+      <div class="card kpi kpi-bl">
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-val" id="k-rev">₹9.91 Cr</div>
+        <div class="kpi-sub pos" id="k-rev-sub">▲ Peak: Jan-26 (₹4.31 Cr)</div>
+      </div>
+      <div class="card kpi kpi-or">
+        <div class="kpi-label">Total Purchase</div>
+        <div class="kpi-val" id="k-pur">₹8.84 Cr</div>
+        <div class="kpi-sub neu" id="k-pur-sub">Avg P/S ratio: 0.89</div>
+      </div>
+      <div class="card kpi kpi-gn">
+        <div class="kpi-label">Gross Profit</div>
+        <div class="kpi-val" id="k-gp">₹64.2 L</div>
+        <div class="kpi-sub pos" id="k-gp-sub">▲ Overall GPM: 6.5%</div>
+      </div>
+      <div class="card kpi kpi-pu">
+        <div class="kpi-label">Invoices / Period</div>
+        <div class="kpi-val" id="k-inv">382</div>
+        <div class="kpi-sub neu">141 customers · 4 months</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="ct">
+        <div class="ctitle">GST Payable to Government — Quick View</div>
+      </div>
+      <div style="padding:14px 18px 8px;color:var(--txm);font-size:12px;line-height:1.6">
+        <span style="color:var(--tx)">In simple words:</span> we <b>collect GST</b> from customers on every sale, and we <b>pay GST</b> to vendors on every purchase. The GST we paid (called <b>ITC</b>) is allowed to be deducted from the GST we collected — only the leftover has to be paid in <b>cash</b> to the government. Anything still left over carries forward to next month.
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:10px 18px 18px">
+        <div style="background:rgba(56,139,253,0.06);border:1px solid var(--bd2);border-radius:8px;padding:14px">
+          <div style="font-size:10px;color:var(--txm);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">① GST Collected from Customers</div>
+          <div id="itc-out" style="font-size:22px;font-weight:700;color:var(--bl)">₹0</div>
+          <div style="font-size:11px;color:var(--txm);margin-top:4px">on sales (Output GST)</div>
+        </div>
+        <div style="background:rgba(63,185,80,0.06);border:1px solid var(--bd2);border-radius:8px;padding:14px">
+          <div style="font-size:10px;color:var(--txm);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">② GST Paid to Vendors (ITC)</div>
+          <div id="itc-in" style="font-size:22px;font-weight:700;color:var(--gn)">₹0</div>
+          <div style="font-size:11px;color:var(--txm);margin-top:4px">on purchases (Input GST)</div>
+        </div>
+        <div style="background:rgba(219,109,40,0.08);border:1px solid var(--bd2);border-radius:8px;padding:14px">
+          <div style="font-size:10px;color:var(--txm);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">③ Cash to Pay Government</div>
+          <div id="itc-cash" style="font-size:22px;font-weight:700;color:var(--or)">₹0</div>
+          <div style="font-size:11px;color:var(--txm);margin-top:4px">① minus ② (after ITC adjustment)</div>
+        </div>
+        <div style="background:rgba(63,185,80,0.06);border:1px solid var(--bd2);border-radius:8px;padding:14px">
+          <div style="font-size:10px;color:var(--txm);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">④ ITC Carried Forward</div>
+          <div id="itc-carry" style="font-size:22px;font-weight:700;color:var(--gn)">₹0</div>
+          <div style="font-size:11px;color:var(--txm);margin-top:4px">unused credit for next month</div>
+        </div>
+      </div>
+      <div style="padding:0 18px 14px">
+        <details style="font-size:11px;color:var(--txm)">
+          <summary style="cursor:pointer;color:var(--bl);margin-bottom:8px">▸ Show detailed breakup by tax type (IGST / CGST / SGST)</summary>
+          <div class="tw" style="margin-top:8px">
+            <table class="dt">
+              <thead>
+                <tr>
+                  <th>Tax Type</th>
+                  <th class="r">Collected (Liability)</th>
+                  <th class="r">Paid (ITC)</th>
+                  <th class="r">Cash to Pay</th>
+                  <th class="r">Carry Forward</th>
+                </tr>
+              </thead>
+              <tbody id="tb-itc"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:8px;line-height:1.5">
+            <b>Rule:</b> IGST credit can be used against any tax. CGST credit can offset only CGST or IGST. SGST credit can offset only SGST or IGST. CGST and SGST credits never offset each other.
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="sh">Revenue Growth Rate — Sale Trends</div>
+    <div class="g2w">
+      <div class="card">
+        <div class="ct">
+          <div class="ctitle">Revenue vs Purchase — Monthly</div>
+          <div class="leg">
+            <div class="li">
+              <div class="ld" style="background:#58a6ff"></div>Sales
+            </div>
+            <div class="li">
+              <div class="ld" style="background:#db6d28"></div>Purchase
+            </div>
+            <div class="li">
+              <div class="ll" style="background:#3fb950"></div>GPM %
+            </div>
+          </div>
+        </div>
+        <div class="cb h220"><canvas id="comboChart"></canvas></div>
+        <div class="mom-row">
+          <div class="mom-item">
+            <div class="mom-lbl">NOV → DEC</div>
+            <div class="mom-val pos">▲ +84.0%</div>
+          </div>
+          <div class="mom-item">
+            <div class="mom-lbl">DEC → JAN</div>
+            <div class="mom-val pos">▲ +71.2%</div>
+          </div>
+          <div class="mom-item">
+            <div class="mom-lbl">JAN → FEB</div>
+            <div class="mom-val neg">▼ −60.3%</div>
+          </div>
+          <div class="mom-item" style="border-left:1px solid var(--bd2);padding-left:12px">
+            <div class="mom-lbl">YoY Growth (Est.)</div>
+            <div class="mom-val pos" style="color:var(--gn)">▲ +31.4%</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">
+          <div class="ctitle">Gross Profit Margin — By Month</div>
+        </div>
+        <div id="gpmRows"></div>
+        <div
+          style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)">
+          <span style="font-size:10px;color:var(--txm);text-transform:uppercase;letter-spacing:.07em">Period GPM</span>
+          <span id="k-gpm-tot" class="gbadge gbg">+6.5%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sh">Core Financials &amp; Revenue Drivers</div>
+    <div class="g3">
+      <!-- Break-Even Analysis -->
+      <div class="card">
+        <div class="ct">
+          <div class="ctitle">Break-Even Analysis</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:4px">
+          <div
+            style="flex:1;text-align:center;padding:10px;background:var(--s3);border-radius:var(--r2);border:1px solid var(--bd)">
+            <div style="font-size:8px;color:var(--txd);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">
+              Total Revenue</div>
+            <div id="k-bep-rev" style="font-size:15px;color:var(--tx);font-family:var(--mn);font-weight:300">₹9.91 Cr
+            </div>
+          </div>
+          <div
+            style="flex:1;text-align:center;padding:10px;background:var(--s3);border-radius:var(--r2);border:1px solid var(--bd)">
+            <div style="font-size:8px;color:var(--txd);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">
+              Total Cost</div>
+            <div id="k-bep-cost" style="font-size:15px;color:var(--tx);font-family:var(--mn);font-weight:300">₹8.84 Cr
+            </div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:var(--txd);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">
+          Monthly Status</div>
+        <div class="bep-chips" id="bepChips"></div>
+        <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--bd)">
+          <div>
+            <div style="font-size:8px;color:var(--txd);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">
+              BEP Gap</div>
+            <div id="k-bep-gap" class="pos mono" style="font-size:18px;font-weight:500">+₹64.2 L</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:8px;color:var(--txd);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">
+              Margin</div>
+            <div id="k-bep-margin" class="pos mono" style="font-size:18px;font-weight:500">+6.5%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Customers by Revenue -->
+      <div class="card">
+        <div class="ct">
+          <div class="ctitle">Top Customers by Revenue</div>
+        </div>
+        <table class="dt" style="flex:1">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th class="r">₹ L</th>
+              <th class="r">Share</th>
+            </tr>
+          </thead>
+          <tbody id="topCustBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Product Mix -->
+      <div class="card">
+        <div class="ct">
+          <div class="ctitle">Product Mix — Top by Revenue</div>
+        </div>
+        <div id="prodBars" style="display:flex;flex-direction:column;justify-content:space-around;flex:1"></div>
+      </div>
+    </div>
+
+    <div class="sh">Operational Efficiency &amp; Customer Insights</div>
+    <div class="g3">
+      <!-- Customer Acquisition & Retention -->
+      <div class="card">
+        <div class="ct">
+          <div class="ctitle">Customer Acquisition &amp; Retention</div>
+        </div>
+        <div class="dw" style="margin-bottom:6px">
+          <div style="position:relative;width:96px;height:96px;flex-shrink:0">
+            <canvas id="custDonut" width="96" height="96"></canvas>
+            <div
+              style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+              <div style="font-size:17px;font-weight:500;color:var(--tx);font-family:var(--mn)">33%</div>
+              <div style="font-size:8px;color:var(--txm);text-transform:uppercase;letter-spacing:.06em">retention</div>
+            </div>
+          </div>
+          <div class="dl">
+            <div class="dr">
+              <div class="dd" style="background:var(--bl2)"></div>New — <strong
+                style="color:var(--tx);font-family:var(--mn);margin-left:3px">94</strong> <span
+                style="font-size:10px;color:var(--txm)">(66.7%)</span>
+            </div>
+            <div class="dr">
+              <div class="dd" style="background:var(--gn)"></div>Returning — <strong
+                style="color:var(--tx);font-family:var(--mn);margin-left:3px">47</strong> <span
+                style="font-size:10px;color:var(--txm)">(33.3%)</span>
+            </div>
+            <div style="font-size:10px;color:var(--txm);margin-top:4px;padding-top:8px;border-top:1px solid var(--bd)">
+              Total Unique: <strong style="color:var(--tx);font-family:var(--mn)">141</strong></div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:var(--txd);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">
+          Monthly Customers</div>
+        <div class="cb h90" style="flex:1"><canvas id="custBar"></canvas></div>
+      </div>
+
+      <!-- Purchase-to-Sale Ratio -->
+      <div class="card">
+        <div class="ct">
+          <div class="ctitle">Purchase-to-Sale Ratio</div>
+          <span style="font-size:9px;color:var(--txd);font-style:italic">red line = 1.0</span>
+        </div>
+        <div id="psRows" style="display:flex;flex-direction:column;justify-content:space-around;flex:1"></div>
+        <div class="inset">
+          <div class="ins">
+            <div class="ins-l">Healthiest</div>
+            <div class="ins-v pos">Jan '26 · 0.674</div>
+          </div>
+          <div class="ins">
+            <div class="ins-l">Riskiest</div>
+            <div class="ins-v neg">Dec '25 · 1.128</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price Variance (Vendors) -->
+      <div class="card">
+        <div class="ct">
+          <div class="ctitle">Price Variance — Top Vendors</div>
+        </div>
+        <div id="vendBars" style="display:flex;flex-direction:column;justify-content:space-around;flex:1"></div>
+        <div class="alert-am">
+          <span>⚠️</span>
+          <span>Waaree Energies = <strong>63.3%</strong> of total purchase — single-supplier concentration risk. Monitor
+            pricing closely.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- = = = = = = =  REVENUE PAGE = = = = = = =  -->
+  <div id="pg-revenue" class="pg">
+    <div class="card">
+      <div class="ct">
+        <div class="ctitle">Revenue &amp; Sales Register</div>
+      </div>
+      <div class="tctrl" style="display:flex;gap:10px;align-items:center;">
+        <input class="si" id="s-rev" placeholder="🔍 Search invoices or customers…" oninput="renderTables()"
+          style="flex:1;">
+        <select class="si" id="sort-rev" onchange="renderTables()"
+          style="width:220px;cursor:pointer;background:var(--bg2);">
+          <option value="def">Sort: Default (Native)</option>
+          <option value="date_desc">Sort: Date (Newest First)</option>
+          <option value="date_asc">Sort: Date (Oldest First)</option>
+          <option value="amt_desc">Sort: Amount (High to Low)</option>
+          <option value="amt_asc">Sort: Amount (Low to High)</option>
+          <option value="az">Sort: Alphabetically (A-Z)</option>
+          <option value="za">Sort: Alphabetically (Z-A)</option>
+        </select>
+      </div>
+      <div class="tw">
+        <table class="dt">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Invoice No.</th>
+              <th>Customer</th>
+              <th class="r">Taxable (₹)</th>
+              <th class="r">GST (₹)</th>
+              <th class="r">Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="tb-rev"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="ct">
+        <div class="ctitle">Revenue Variance By Customer</div>
+      </div>
+      <div class="tctrl">
+        <input class="si" id="s-rev-anal" placeholder="🔍 Search revenue history…" oninput="renderRevenueAnalysis()">
+      </div>
+      <div id="revenue-analysis-container" class="va-wrap"></div>
+    </div>
+
+  </div>
+
+  <!-- = = = = = = =  PURCHASE PAGE = = = = = = =  -->
+  <div id="pg-purchase" class="pg">
+    <div class="card">
+      <div class="ct">
+        <div class="ctitle">Purchase Register</div>
+      </div>
+      <div class="tctrl" style="display:flex;gap:10px;align-items:center;">
+        <input class="si" id="s-pur" placeholder="🔍 Search vendors or vouchers…" oninput="renderTables()"
+          style="flex:1;">
+        <select class="si" id="sort-pur" onchange="renderTables()"
+          style="width:220px;cursor:pointer;background:var(--bg2);">
+          <option value="def">Sort: Default (Native)</option>
+          <option value="date_desc">Sort: Date (Newest First)</option>
+          <option value="date_asc">Sort: Date (Oldest First)</option>
+          <option value="amt_desc">Sort: Amount (High to Low)</option>
+          <option value="amt_asc">Sort: Amount (Low to High)</option>
+          <option value="az">Sort: Alphabetically (A-Z)</option>
+          <option value="za">Sort: Alphabetically (Z-A)</option>
+        </select>
+      </div>
+      <div class="tw">
+        <table class="dt">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Voucher</th>
+              <th>Vendor</th>
+              <th class="r">Taxable (₹)</th>
+              <th class="r">GST (₹)</th>
+              <th class="r">Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="tb-pur"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="ct">
+        <div class="ctitle">Vendor Purchase History & Variance</div>
+      </div>
+      <div class="tctrl">
+        <input class="si" id="s-vand" placeholder="🔍  Search vendor history…" oninput="renderVendorAnalysis()">
+      </div>
+      <div id="vendor-analysis-container" class="va-wrap"></div>
+    </div>
+
+  </div>
+
+  <!-- = = = = = = =  CUSTOMERS PAGE = = = = = = =  -->
+  <div id="pg-customers" class="pg">
+    <div class="card">
+      <div class="ct">
+        <div class="ctitle">Customer Master</div>
+      </div>
+      <div class="tctrl" style="display:flex;gap:10px;align-items:center;">
+        <input class="si" id="s-cust" placeholder="🔍 Search customers…" oninput="renderTables()" style="flex:1;">
+        <select class="si" id="sort-cust" onchange="renderTables()"
+          style="width:220px;cursor:pointer;background:var(--bg2);">
+          <option value="def">Sort: Default (Native)</option>
+          <option value="amt_desc">Sort: Revenue (High to Low)</option>
+          <option value="amt_asc">Sort: Revenue (Low to High)</option>
+          <option value="inv_desc">Sort: Invoice Count (High to Low)</option>
+          <option value="inv_asc">Sort: Invoice Count (Low to High)</option>
+          <option value="az">Sort: Alphabetically (A-Z)</option>
+          <option value="za">Sort: Alphabetically (Z-A)</option>
+        </select>
+      </div>
+      <div class="tw">
+        <table class="dt">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>GSTIN</th>
+              <th class="r">Invoices</th>
+              <th class="r">Total Revenue (₹)</th>
+              <th class="r">Share %</th>
+            </tr>
+          </thead>
+          <tbody id="tb-cust"></tbody>
+        </table>
+      </div>
+      <div style="padding:10px 14px 12px;color:var(--txm);font-size:11px;line-height:1.5;border-top:1px solid var(--bd2);margin-top:6px">
+        <b style="color:var(--tx)">Note on missing GSTINs:</b> Customers shown with "—" in the GSTIN column are <b>unregistered buyers</b> — primarily individual / retail consumers (SHRI, SMT, MR, Cash sales, etc.) who are not registered under GST and therefore do not have a GSTIN. The source Excel file also has these cells blank. This is not a data gap; under GST law, B2C sales to unregistered persons are billed without a counterparty GSTIN.
+      </div>
+    </div>
+  </div>
+
+  <!-- = = = = = = =  INVOICES PAGE = = = = = = =  -->
+  <div id="pg-invoices" class="pg">
+    <div class="card">
+      <div class="ct">
+        <div class="ctitle">Complete Invoice Master — 382 Records</div>
+      </div>
+      <div class="tctrl" style="display:flex;gap:10px;align-items:center;">
+        <input class="si" id="s-inv" placeholder="🔍 Global search…" oninput="renderTables()" style="flex:1;">
+        <select class="si" id="sort-inv" onchange="renderTables()"
+          style="width:220px;cursor:pointer;background:var(--bg2);">
+          <option value="def">Sort: Default (Native)</option>
+          <option value="date_desc">Sort: Date (Newest First)</option>
+          <option value="date_asc">Sort: Date (Oldest First)</option>
+          <option value="amt_desc">Sort: Amount (High to Low)</option>
+          <option value="amt_asc">Sort: Amount (Low to High)</option>
+          <option value="az">Sort: Alphabetically (A-Z)</option>
+          <option value="za">Sort: Alphabetically (Z-A)</option>
+        </select>
+      </div>
+      <div class="tw">
+        <table class="dt">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Invoice No.</th>
+              <th>Customer</th>
+              <th class="r">Taxable (₹)</th>
+              <th class="r">GST (₹)</th>
+              <th class="r">Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="tb-inv"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="ct">
+        <div class="ctitle">Customer Invoice History & Variance</div>
+      </div>
+      <div class="tctrl">
+        <input class="si" id="s-cust-anal" placeholder="🔍 Search customer history…" oninput="renderCustomerAnalysis()">
+      </div>
+      <div id="customer-analysis-container" class="va-wrap"></div>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="ft">SteamBuddy &nbsp;&middot;&nbsp; Ring Road No.1, Khushalpur Chowk, Raipur (C.G.) 492001
+      &nbsp;&middot;&nbsp; info@steambuddy.in &nbsp;&middot;&nbsp; +91-9755594157</div>
+    <div class="footer-brand">
+      <div class="fb-dot"></div>
+      <div class="ft">Designed &amp; Built by &nbsp;<span
+          style="color:var(--bl);font-weight:600;letter-spacing:.03em">Agentica AI Labs</span>&nbsp;<span
+          class="ft-sep"></span><span style="color:var(--txd)">Intelligent Business Solutions</span></div>
+    </div>
+  </footer>
+
+  <script>
+    // =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â DATA =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â
+
+    const PRODUCTS = [
+      { n: "Solar Power Gen System", v: 177.2, p: 100, t: 'vol' },
+      { n: "WAAREE 530WP Bifacial DCR", v: 145.8, p: 82, t: 'vol' },
+      { n: "Radiant Lite 3.48KW", v: 98.3, p: 55, t: 'mar' },
+      { n: "WAAREE 580WP Topcon DCR", v: 92.3, p: 52, t: 'mar' },
+      { n: "Solar EPC Work", v: 67.6, p: 38, t: 'mar' },
+      { n: "Ongrid 1Ph Inverter 3.3KVA", v: 29.0, p: 16, t: 'vol' }
+    ];
+
+    const DB_SALES = [{ "d": "2025-11-03", "v": "SB/000141", "c": "Gaurav Solar Sky", "tax": 307484, "gst": 15374, "tot": 322858 }, { "d": "2025-11-04", "v": "SB/000142", "c": "Mahakal Electrification", "tax": 407160, "gst": 20358, "tot": 427518 }, { "d": "2025-11-04", "v": "SB/000143", "c": "Go Cleanz", "tax": 11816, "gst": 2127, "tot": 13943 }, { "d": "2025-11-04", "v": "SB/000144", "c": "Uv Energy Solutions", "tax": 17500, "gst": 875, "tot": 18375 }, { "d": "2025-11-05", "v": "SB/000145", "c": "Bbn Energy", "tax": 369026, "gst": 18451, "tot": 387477 }, { "d": "2025-11-05", "v": "SB/000146", "c": "Chhattisgarh Innovations", "tax": 179000, "gst": 8950, "tot": 187950 }, { "d": "2025-11-05", "v": "SB/000147", "c": "Suryoday Akshay Urja", "tax": 29710, "gst": 1486, "tot": 31195 }, { "d": "2025-11-05", "v": "SB/000148", "c": "Ajay Solar Solutions", "tax": 182004, "gst": 9100, "tot": 191104 }, { "d": "2025-11-06", "v": "SB/000149", "c": "SHRI BALDAU VERMA", "tax": 176318, "gst": 15182, "tot": 191500 }, { "d": "2025-11-06", "v": "SB/000150", "c": "SHRI KOMAL CHAND DEWANGAN", "tax": 180501, "gst": 15499, "tot": 196000 }, { "d": "2025-11-06", "v": "SB/000151", "c": "SHRI GLADWIN MASIH", "tax": 176318, "gst": 15182, "tot": 191500 }, { "d": "2025-11-06", "v": "SB/000152", "c": "Shubham Sales", "tax": 1040450, "gst": 52023, "tot": 1092473 }, { "d": "2025-11-07", "v": "SB/000153", "c": "Chhattisgarh Solar", "tax": 146053, "gst": 8173, "tot": 154226 }, { "d": "2025-11-07", "v": "SB/000154", "c": "Rajvi Trade Link", "tax": 65309, "gst": 3265, "tot": 68574 }, { "d": "2025-11-07", "v": "SB/000155", "c": "Suryoday Akshay Urja", "tax": 200200, "gst": 10010, "tot": 210210 }, { "d": "2025-11-10", "v": "SB/000156", "c": "SUDHIR UPRIT", "tax": 177743, "gst": 15256, "tot": 193000 }, { "d": "2025-11-11", "v": "SB/000157", "c": "Avon Construction", "tax": 346500, "gst": 17325, "tot": 363825 }, { "d": "2025-11-11", "v": "SB/000158", "c": "Suryoday Akshay Urja", "tax": 19057, "gst": 953, "tot": 20010 }, { "d": "2025-11-11", "v": "SB/000159", "c": "Mahakal Electrification", "tax": 48010, "gst": 2401, "tot": 50411 }, { "d": "2025-11-12", "v": "SB/000160", "c": "RUDRA POWER & TECNOLOGY", "tax": 78700, "gst": 3935, "tot": 82635 }, { "d": "2025-11-12", "v": "SB/000161", "c": "Mahakal Electrification", "tax": 48010, "gst": 2401, "tot": 50411 }, { "d": "2025-11-13", "v": "SB/000162", "c": "Bharat Board Sales", "tax": 5932, "gst": 1068, "tot": 7000 }, { "d": "2025-11-13", "v": "SB/000163", "c": "Ad Tech Mitra", "tax": 231000, "gst": 11550, "tot": 242550 }, { "d": "2025-11-15", "v": "SB/000164", "c": "Avon Construction", "tax": 218000, "gst": 10900, "tot": 228900 }, { "d": "2025-11-17", "v": "SB/000165", "c": "Aditi Construction", "tax": 174000, "gst": 8700, "tot": 182700 }, { "d": "2025-11-17", "v": "SB/000166", "c": "Bhawana Traders & Ashish Kumar Rathi", "tax": 346500, "gst": 17325, "tot": 363825 }, { "d": "2025-11-17", "v": "SB/000167", "c": "Suryoday Akshay Urja", "tax": 451200, "gst": 22560, "tot": 473760 }, { "d": "2025-11-18", "v": "SB/000168", "c": "Shree Enterprises", "tax": 551882, "gst": 27594, "tot": 579476 }, { "d": "2025-11-18", "v": "SB/000169", "c": "Uv Energy Solutions", "tax": 216000, "gst": 10800, "tot": 226800 }, { "d": "2025-11-19", "v": "SB/000170", "c": "SMT RANJANA SAHU", "tax": 180501, "gst": 15499, "tot": 196000 }, { "d": "2025-11-19", "v": "SB/000171", "c": "SHRI VINOD AGRAWAL", "tax": 180501, "gst": 15499, "tot": 196000 }, { "d": "2025-11-19", "v": "SB/000172", "c": "SHRI SANDEEP AGRAWAL", "tax": 180501, "gst": 15499, "tot": 196000 }, { "d": "2025-11-19", "v": "SB/000173", "c": "Mahakal Electrification", "tax": 115239, "gst": 5762, "tot": 121000 }, { "d": "2025-11-20", "v": "SB/000174", "c": "RUDRA POWER & TECNOLOGY", "tax": 116500, "gst": 5825, "tot": 122325 }, { "d": "2025-11-21", "v": "SB/000175", "c": "SHRI RAMBISHAL VERMA", "tax": 180501, "gst": 15499, "tot": 196000 }, { "d": "2025-11-21", "v": "SB/000176", "c": "CHOWA RAM VERMA", "tax": 180501, "gst": 15499, "tot": 196000 }, { "d": "2025-11-21", "v": "SB/000177", "c": "Ad Tech Mitra", "tax": 116000, "gst": 5800, "tot": 121800 }, { "d": "2025-11-21", "v": "SB/000178", "c": "Rathod Renewables", "tax": 115500, "gst": 5775, "tot": 121275 }, { "d": "2025-11-22", "v": "SB/000179", "c": "Mahakal Electrification", "tax": 76596, "gst": 3830, "tot": 80425 }, { "d": "2025-11-22", "v": "SB/000180", "c": "Natural Remedies Private Limited", "tax": 595837, "gst": 107251, "tot": 703087 }, { "d": "2025-11-24", "v": "SB/000181", "c": "Avon Construction", "tax": 231000, "gst": 11550, "tot": 242550 }, { "d": "2025-11-24", "v": "SB/000182", "c": "Durgesh Solar Solution Private Limited", "tax": 29700, "gst": 1485, "tot": 31185 }, { "d": "2025-11-26", "v": "SB/000183", "c": "Chhattisgarh Solar", "tax": 195000, "gst": 9750, "tot": 204750 }, { "d": "2025-11-26", "v": "SB/000184", "c": "Shri Ventures", "tax": 295580, "gst": 14779, "tot": 310359 }, { "d": "2025-11-26", "v": "SB/000185", "c": "Suryoday Akshay Urja", "tax": 230000, "gst": 11500, "tot": 241500 }, { "d": "2025-11-27", "v": "SB/000186", "c": "Gaurav Solar Sky", "tax": 605620, "gst": 30281, "tot": 635901 }, { "d": "2025-11-27", "v": "SB/000187", "c": "Ld Construction", "tax": 212338, "gst": 10617, "tot": 222955 }, { "d": "2025-11-27", "v": "SB/000188", "c": "RUDRA POWER & TECNOLOGY", "tax": 399800, "gst": 19990, "tot": 419790 }, { "d": "2025-11-27", "v": "SB/000189", "c": "Suryoday Akshay Urja", "tax": 107980, "gst": 5399, "tot": 113379 }, { "d": "2025-11-27", "v": "SB/000190", "c": "Bbn Energy", "tax": 181656, "gst": 9083, "tot": 190739 }, { "d": "2025-11-27", "v": "SB/000192", "c": "Mahanadiya Solar Energy", "tax": 129116, "gst": 6456, "tot": 135572 }, { "d": "2025-11-28", "v": "SB/000193", "c": "Dharatmaj Construction", "tax": 345000, "gst": 17250, "tot": 362250 }, { "d": "2025-11-28", "v": "SB/000194", "c": "Cash", "tax": 60, "gst": 11, "tot": 71 }, { "d": "2025-11-28", "v": "SB/000197", "c": "Sudthk Energy", "tax": 985710, "gst": 49286, "tot": 1034996 }, { "d": "2025-11-28", "v": "SB/000195", "c": "Ld Construction", "tax": 106169, "gst": 5308, "tot": 111477 }, { "d": "2025-11-28", "v": "SB/000196", "c": "M/s Bakers Circle(India)Pvt.Ltd.", "tax": 19475, "gst": 3506, "tot": 22981 }, { "d": "2025-11-29", "v": "SB/000198", "c": "Uv Energy Solutions", "tax": 540000, "gst": 27000, "tot": 567000 }, { "d": "2025-11-29", "v": "SB/000199", "c": "Suryoday Akshay Urja", "tax": 108000, "gst": 5400, "tot": 113400 }, { "d": "2025-11-29", "v": "SB/000200", "c": "SMT D NEELAVENI", "tax": 257821, "gst": 22179, "tot": 280000 }, { "d": "2025-11-29", "v": "SB/000201", "c": "SHRI ARUN CHANDRA BHUNIA", "tax": 267076, "gst": 22924, "tot": 290000 }, { "d": "2025-12-01", "v": "SB/000202", "c": "Suryoday Akshay Urja", "tax": 229000, "gst": 11450, "tot": 240450 }, { "d": "2025-12-01", "v": "SB/000203", "c": "RUDRA POWER & TECNOLOGY", "tax": 108000, "gst": 5400, "tot": 113400 }, { "d": "2025-12-01", "v": "SB/000204", "c": "Maya Solar Solutions", "tax": 231000, "gst": 11550, "tot": 242550 }, { "d": "2025-12-01", "v": "SB/000205", "c": "Electragen Infrastructure", "tax": 17800, "gst": 890, "tot": 18690 }, { "d": "2025-12-01", "v": "SB/000206", "c": "Sharda Construction", "tax": 373500, "gst": 18675, "tot": 392175 }, { "d": "2025-12-02", "v": "SB/000207", "c": "RUDRA POWER & TECNOLOGY", "tax": 20750, "gst": 3735, "tot": 24485 }, { "d": "2025-12-02", "v": "SB/000208", "c": "Hope Energy", "tax": 37760, "gst": 4531, "tot": 42291 }, { "d": "2025-12-02", "v": "SB/000209", "c": "Shree Enterprises", "tax": 406352, "gst": 20318, "tot": 426670 }, { "d": "2025-12-03", "v": "SB/000212", "c": "Aditi Construction", "tax": 146000, "gst": 7300, "tot": 153300 }, { "d": "2025-12-03", "v": "SB/000210", "c": "SMT . BHARTEE SHUKLA", "tax": 207203, "gst": 17797, "tot": 225000 }, { "d": "2025-12-03", "v": "SB/000211", "c": "Ld Construction", "tax": 3700, "gst": 666, "tot": 4366 }, { "d": "2025-12-03", "v": "SB/000213", "c": "Shri Ventures", "tax": 226200, "gst": 11310, "tot": 237510 }, { "d": "2025-12-04", "v": "SB/000214", "c": "RUDRA POWER & TECNOLOGY", "tax": 115000, "gst": 5750, "tot": 120750 }, { "d": "2025-12-04", "v": "SB/000215", "c": "Bhawana Traders & Ashish Kumar Rathi", "tax": 577500, "gst": 28875, "tot": 606375 }, { "d": "2025-12-05", "v": "SB/000217", "c": "Suryoday Akshay Urja", "tax": 645000, "gst": 32250, "tot": 677250 }, { "d": "2025-12-05", "v": "SB/000220", "c": "Bbn Energy", "tax": 448698, "gst": 22435, "tot": 471133 }, { "d": "2025-12-05", "v": "SB/000218", "c": "Rajvi Trade Link", "tax": 395910, "gst": 19796, "tot": 415706 }, { "d": "2025-12-05", "v": "SB/000219", "c": "Avon Construction", "tax": 686244, "gst": 34312, "tot": 720556 }, { "d": "2025-12-05", "v": "SB/000216", "c": "Uv Energy Solutions", "tax": 552048, "gst": 27602, "tot": 579650 }, { "d": "2025-12-06", "v": "SB/000221", "c": "Chhattisgarh Solar", "tax": 214000, "gst": 10700, "tot": 224700 }, { "d": "2025-12-06", "v": "SB/000222", "c": "Avon Construction", "tax": 343122, "gst": 17156, "tot": 360278 }, { "d": "2025-12-08", "v": "SB/000223", "c": "RUDRA POWER & TECNOLOGY", "tax": 221750, "gst": 11088, "tot": 232838 }, { "d": "2025-12-08", "v": "SB/000242", "c": "Anay Solar Solutions", "tax": 322500, "gst": 16125, "tot": 338625 }, { "d": "2025-12-08", "v": "SB/000224", "c": "RUDRA POWER & TECNOLOGY", "tax": 585000, "gst": 29250, "tot": 614250 }, { "d": "2025-12-08", "v": "SB/000225", "c": "Electragen Infrastructure", "tax": 107500, "gst": 5375, "tot": 112875 }, { "d": "2025-12-08", "v": "SB/000226", "c": "Sudthk Energy", "tax": 1016964, "gst": 50848, "tot": 1067812 }, { "d": "2025-12-09", "v": "SB/000227", "c": "Innovative Solutions", "tax": 285000, "gst": 51300, "tot": 336300 }, { "d": "2025-12-09", "v": "SB/000228", "c": "Innovative Solutions", "tax": 27600, "gst": 4968, "tot": 32568 }, { "d": "2025-12-09", "v": "SB/000229", "c": "Shri Ventures", "tax": 539370, "gst": 26969, "tot": 566339 }, { "d": "2025-12-09", "v": "SB/000230", "c": "Utc Solar Private Limited", "tax": 161158, "gst": 13842, "tot": 175000 }, { "d": "2025-12-10", "v": "SB/000231", "c": "Suryoday Akshay Urja", "tax": 310500, "gst": 15525, "tot": 326025 }, { "d": "2025-12-10", "v": "SB/000232", "c": "Ld Construction", "tax": 94285, "gst": 6066, "tot": 100351 }, { "d": "2025-12-11", "v": "SB/000233", "c": "Bhawana Traders & Ashish Kumar Rathi", "tax": 575000, "gst": 28750, "tot": 603750 }, { "d": "2025-12-11", "v": "SB/000234", "c": "Raipur Power and Infra Private Limited", "tax": 230000, "gst": 11500, "tot": 241500 }, { "d": "2025-12-12", "v": "SB/000243", "c": "RUDRA POWER & TECNOLOGY", "tax": 348788, "gst": 17439, "tot": 366227 }, { "d": "2025-12-12", "v": "SB/000235", "c": "RUDRA POWER & TECNOLOGY", "tax": 215000, "gst": 10750, "tot": 225750 }, { "d": "2025-12-12", "v": "SB/000236", "c": "SHIV KUMAR SAHU", "tax": 248644, "gst": 21356, "tot": 270000 }, { "d": "2025-12-12", "v": "SB/000237", "c": "Ajay Solar Solutions", "tax": 54000, "gst": 2700, "tot": 56700 }, { "d": "2025-12-12", "v": "SB/000238", "c": "Suryoday Akshay Urja", "tax": 407388, "gst": 20369, "tot": 427757 }, { "d": "2025-12-12", "v": "SB/000239", "c": "Chhattisgarh Solar", "tax": 211152, "gst": 10558, "tot": 221710 }, { "d": "2025-12-12", "v": "SB/000240", "c": "Aditi Construction", "tax": 7129, "gst": 1283, "tot": 8412 }, { "d": "2025-12-12", "v": "SB/000241", "c": "K.K. Enterprises", "tax": 237546, "gst": 11877, "tot": 249423 }, { "d": "2025-12-13", "v": "SB/000244", "c": "Drools Pet Food Private Limited", "tax": 44700, "gst": 8046, "tot": 52746 }, { "d": "2025-12-13", "v": "SB/000245", "c": "Electragen Infrastructure", "tax": 483320, "gst": 24166, "tot": 507486 }, { "d": "2025-12-13", "v": "SB/000246", "c": "Uv Energy Solutions", "tax": 78864, "gst": 3943, "tot": 82807 }, { "d": "2025-12-13", "v": "SB/000250", "c": "Shree Enterprises", "tax": 380484, "gst": 19024, "tot": 399508 }, { "d": "2025-12-13", "v": "SB/000247", "c": "Suryoday Akshay Urja", "tax": 328600, "gst": 16430, "tot": 345030 }, { "d": "2025-12-13", "v": "SB/000248", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 5000, "gst": 900, "tot": 5900 }, { "d": "2025-12-13", "v": "SB/000249", "c": "Mahanadiya Solar Energy", "tax": 133399, "gst": 6670, "tot": 140069 }, { "d": "2025-12-15", "v": "SB/000251", "c": "Ld Construction", "tax": 96982, "gst": 4849, "tot": 101831 }, { "d": "2025-12-15", "v": "SB/000253", "c": "Vamika Enterprises", "tax": 158364, "gst": 7918, "tot": 166282 }, { "d": "2025-12-15", "v": "SB/000252", "c": "Bbn Energy", "tax": 600392, "gst": 30020, "tot": 630412 }, { "d": "2025-12-15", "v": "SB/000254", "c": "MAHADEV SERVICE CENTER", "tax": 26850, "gst": 4833, "tot": 24500 }, { "d": "2025-12-15", "v": "SB/000255", "c": "SHRI TIHARU RAM S/O SUKLAL SA", "tax": 176353, "gst": 15147, "tot": 191500 }, { "d": "2025-12-15", "v": "SB/000257", "c": "Mahanadiya Solar Energy", "tax": 45014, "gst": 3148, "tot": 48162 }, { "d": "2025-12-15", "v": "SB/000256", "c": "SHRI SUDHIR UPRITS S/O M.R", "tax": 177734, "gst": 15265, "tot": 193000 }, { "d": "2025-12-15", "v": "SB/000258", "c": "Uv Energy Solutions", "tax": 315456, "gst": 15773, "tot": 331229 }, { "d": "2025-12-15", "v": "SB/000260", "c": "Uv Energy Solutions", "tax": 394320, "gst": 19716, "tot": 414036 }, { "d": "2025-12-16", "v": "SB/000259", "c": "Shree Sai Shradha Associates", "tax": 216000, "gst": 10800, "tot": 226800 }, { "d": "2025-12-17", "v": "SB/000261", "c": "AJIT BOTHRA", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2025-12-17", "v": "SB/000263", "c": "Mahanadiya Solar Energy", "tax": 55860, "gst": 3034, "tot": 58894 }, { "d": "2025-12-17", "v": "SB/000262", "c": "LAXMAN RAM SAHU", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2025-12-18", "v": "SB/000264", "c": "LOKENDRA KUMAR JAIN", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2025-12-18", "v": "SB/000267", "c": "Vamika Enterprises", "tax": 258904, "gst": 12945, "tot": 271849 }, { "d": "2025-12-18", "v": "SB/000265", "c": "Ad Tech Mitra", "tax": 115500, "gst": 5775, "tot": 121275 }, { "d": "2025-12-18", "v": "SB/000266", "c": "Bhawana Traders & Ashish Kumar Rathi", "tax": 8500, "gst": 1530, "tot": 10030 }, { "d": "2025-12-18", "v": "SB/000268", "c": "Mahakal Electrification", "tax": 3625, "gst": 653, "tot": 4278 }, { "d": "2025-12-19", "v": "SB/000269", "c": "Suryoday Akshay Urja", "tax": 392730, "gst": 19637, "tot": 412367 }, { "d": "2025-12-19", "v": "SB/000270", "c": "Solarution Services Llp", "tax": 473184, "gst": 23659, "tot": 496843 }, { "d": "2025-12-20", "v": "SB/000271", "c": "RUDRA POWER & TECNOLOGY", "tax": 427600, "gst": 21380, "tot": 448980 }, { "d": "2025-12-20", "v": "SB/000275", "c": "Shri Ventures", "tax": 78846, "gst": 3942, "tot": 82788 }, { "d": "2025-12-20", "v": "SB/000277", "c": "Yogshri Enterprises", "tax": 88407, "gst": 4420, "tot": 92827 }, { "d": "2025-12-20", "v": "SB/000273", "c": "Ld Construction", "tax": 160976, "gst": 8946, "tot": 169922 }, { "d": "2025-12-20", "v": "SB/000272", "c": "Fusion Spark Technologies", "tax": 213365, "gst": 10668, "tot": 224033 }, { "d": "2025-12-20", "v": "SB/000274", "c": "Gaurav Solar Sky", "tax": 17500, "gst": 875, "tot": 18375 }, { "d": "2025-12-20", "v": "SB/000276", "c": "Payal Power Systems Private Limited", "tax": 28586, "gst": 1429, "tot": 30015 }, { "d": "2025-12-20", "v": "SB/000278", "c": "Agrawal Associates", "tax": 10300, "gst": 1854, "tot": 12154 }, { "d": "2025-12-22", "v": "SB/000279", "c": "M/s. Fastman Services", "tax": 236115, "gst": 11806, "tot": 247921 }, { "d": "2025-12-22", "v": "SB/000280", "c": "Suryoday Akshay Urja", "tax": 121100, "gst": 6055, "tot": 127155 }, { "d": "2025-12-23", "v": "SB/000281", "c": "RUDRA POWER & TECNOLOGY", "tax": 212000, "gst": 10600, "tot": 222600 }, { "d": "2025-12-23", "v": "SB/000282", "c": "Shri Ventures", "tax": 35000, "gst": 1750, "tot": 36750 }, { "d": "2025-12-23", "v": "SB/000283", "c": "Bbn Energy", "tax": 120400, "gst": 6020, "tot": 126420 }, { "d": "2025-12-24", "v": "SB/000285", "c": "Express Tradecom Private Limited", "tax": 160480, "gst": 8024, "tot": 168504 }, { "d": "2025-12-24", "v": "SB/000284", "c": "SMT.RAJNI C.PANDEY/CHANDRA", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2025-12-24", "v": "SB/000286", "c": "SHRI UMESH S/O DAULAT RAM", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2025-12-24", "v": "SB/000287", "c": "Shri Ventures", "tax": 164491, "gst": 8465, "tot": 172956 }, { "d": "2025-12-25", "v": "SB/000291", "c": "S S Marketing", "tax": 428510, "gst": 21426, "tot": 449936 }, { "d": "2025-12-25", "v": "SB/000288", "c": "Vamika Enterprises", "tax": 236592, "gst": 11830, "tot": 248422 }, { "d": "2025-12-25", "v": "SB/000289", "c": "SMT. DEHUTI BAI SAHU", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2025-12-25", "v": "SB/000290", "c": "Suryoday Akshay Urja", "tax": 479370, "gst": 23969, "tot": 503339 }, { "d": "2025-12-25", "v": "SB/000292", "c": "Mahamaya Sustainable Energy Private Limited", "tax": 115714, "gst": 5786, "tot": 121500 }, { "d": "2025-12-26", "v": "SB/000293", "c": "Veer Deepak Tech and Training Private Limited", "tax": 421700, "gst": 23172, "tot": 444872 }, { "d": "2025-12-26", "v": "SB/000294", "c": "Veer Deepak Tech and Training Private Limited", "tax": 3360, "gst": 605, "tot": 3965 }, { "d": "2025-12-26", "v": "SB/000296", "c": "Solar Wala", "tax": 131334, "gst": 6567, "tot": 137901 }, { "d": "2025-12-26", "v": "SB/000295", "c": "Ad Tech Mitra", "tax": 570000, "gst": 28500, "tot": 598500 }, { "d": "2025-12-27", "v": "SB/000297", "c": "Yogshri Enterprises", "tax": 17500, "gst": 875, "tot": 18375 }, { "d": "2025-12-27", "v": "SB/000298", "c": "Electragen Infrastructure", "tax": 270638, "gst": 13532, "tot": 284170 }, { "d": "2025-12-27", "v": "SB/000299", "c": "Veer Deepak Tech and Training Private Limited", "tax": 307950, "gst": 17484, "tot": 325434 }, { "d": "2025-12-29", "v": "SB/000301", "c": "Raipur Power and Infra Private Limited", "tax": 114000, "gst": 5700, "tot": 119700 }, { "d": "2025-12-29", "v": "SB/000300", "c": "Bhawana Traders & Ashish Kumar Rathi", "tax": 342000, "gst": 17100, "tot": 359100 }, { "d": "2025-12-30", "v": "SB/000304", "c": "Uv Energy Solutions", "tax": 70000, "gst": 3500, "tot": 73500 }, { "d": "2025-12-30", "v": "SB/000302", "c": "Shivshakti Enterprises", "tax": 105000, "gst": 5250, "tot": 110250 }, { "d": "2025-12-30", "v": "SB/000303", "c": "Electragen Infrastructure", "tax": 17500, "gst": 875, "tot": 18375 }, { "d": "2025-12-31", "v": "SB/000305", "c": "Suryoday Akshay Urja", "tax": 506276, "gst": 25314, "tot": 531590 }, { "d": "2025-12-31", "v": "SB/000306", "c": "Suryoday Akshay Urja", "tax": 39273, "gst": 1964, "tot": 41237 }, { "d": "2025-12-31", "v": "SB/000307", "c": "(cancelled )", "tax": 0, "gst": 0, "tot": 0 }, { "d": "2025-12-31", "v": "SB/000308", "c": "SMT PARINA DESAI", "tax": 377570, "gst": 32429, "tot": 410000 }, { "d": "2025-12-31", "v": "SB/000309", "c": "Suruj Solar", "tax": 130910, "gst": 6546, "tot": 137455 }, { "d": "2025-12-31", "v": "SB/000310", "c": "SMT. PUSHPA SAHU", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2025-12-31", "v": "SB/000311", "c": "Cash", "tax": 120, "gst": 22, "tot": 142 }, { "d": "2025-12-31", "v": "SB/000312", "c": "Cash", "tax": 120, "gst": 22, "tot": 142 }, { "d": "2025-12-31", "v": "SB/000313", "c": "Cash", "tax": 160, "gst": 29, "tot": 189 }, { "d": "2025-12-31", "v": "SB/000314", "c": "Cash", "tax": 180, "gst": 32, "tot": 212 }, { "d": "2026-01-02", "v": "SB/000315", "c": "Bbn Energy", "tax": 70000, "gst": 3500, "tot": 73500 }, { "d": "2026-01-02", "v": "SB/000316", "c": "Agrawal Associates", "tax": 1084120, "gst": 69455, "tot": 1153575 }, { "d": "2026-01-02", "v": "SB/000317", "c": "Aryam Sustainables", "tax": 330720, "gst": 16536, "tot": 347256 }, { "d": "2026-01-03", "v": "SB/000318", "c": "Suryoday Akshay Urja", "tax": 286284, "gst": 14314, "tot": 300598 }, { "d": "2026-01-03", "v": "SB/000319", "c": "M/s RR INDUSTRIES", "tax": 5315906, "gst": 456266, "tot": 5772172 }, { "d": "2026-01-03", "v": "SB/000320", "c": "Aryam Sustainables", "tax": 330720, "gst": 16536, "tot": 347256 }, { "d": "2026-01-03", "v": "SB/000321", "c": "Aryam Sustainables", "tax": 330720, "gst": 16536, "tot": 347256 }, { "d": "2026-01-05", "v": "SB/000322", "c": "Suryoday Akshay Urja", "tax": 227000, "gst": 11350, "tot": 238350 }, { "d": "2026-01-05", "v": "SB/000323", "c": "Suryoday Akshay Urja", "tax": 34400, "gst": 1720, "tot": 36120 }, { "d": "2026-01-05", "v": "SB/000324", "c": "Veer Deepak Tech and Training Private Limited", "tax": 302400, "gst": 16485, "tot": 318885 }, { "d": "2026-01-05", "v": "SB/000325", "c": "Payal Power Systems Private Limited", "tax": 28586, "gst": 1429, "tot": 30015 }, { "d": "2026-01-06", "v": "SB/000326", "c": "Sky Automobiles", "tax": 5800, "gst": 1044, "tot": 6844 }, { "d": "2026-01-06", "v": "SB/000327", "c": "M/s. Fastman Services", "tax": 235161, "gst": 11758, "tot": 246919 }, { "d": "2026-01-06", "v": "SB/000328", "c": "Shri Ventures", "tax": 87500, "gst": 4375, "tot": 91875 }, { "d": "2026-01-06", "v": "SB/000329", "c": "Shrishti Solar", "tax": 148940, "gst": 7447, "tot": 156387 }, { "d": "2026-01-06", "v": "SB/000331", "c": "Uv Energy Solutions", "tax": 35000, "gst": 1750, "tot": 36750 }, { "d": "2026-01-06", "v": "SB/000330", "c": "Electragen Infrastructure", "tax": 192092, "gst": 9605, "tot": 201697 }, { "d": "2026-01-06", "v": "SB/000332", "c": "RUDRA POWER & TECNOLOGY", "tax": 258225, "gst": 14049, "tot": 272274 }, { "d": "2026-01-06", "v": "SB/000333", "c": "M/s. Fastman Services", "tax": 17500, "gst": 875, "tot": 18375 }, { "d": "2026-01-06", "v": "SB/000334", "c": "RUDRA POWER & TECNOLOGY", "tax": 4150, "gst": 747, "tot": 4897 }, { "d": "2026-01-07", "v": "SB/000335", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 201400, "gst": 10070, "tot": 211470 }, { "d": "2026-01-07", "v": "SB/000336", "c": "Uv Energy Solutions", "tax": 52576, "gst": 2629, "tot": 55205 }, { "d": "2026-01-07", "v": "SB/000337", "c": "Flame Enterprises and Services", "tax": 2233416, "gst": 191827, "tot": 2425243 }, { "d": "2026-01-07", "v": "SB/000338", "c": "Suryoday Akshay Urja", "tax": 286284, "gst": 14314, "tot": 300598 }, { "d": "2026-01-08", "v": "SB/000339", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 327275, "gst": 16364, "tot": 343639 }, { "d": "2026-01-08", "v": "SB/000340", "c": "M/s. Fastman Services", "tax": 17500, "gst": 875, "tot": 18375 }, { "d": "2026-01-08", "v": "SB/000341", "c": "Uv Energy Solutions", "tax": 35000, "gst": 1750, "tot": 36750 }, { "d": "2026-01-09", "v": "SB/000345", "c": "Veer Deepak Tech and Training Private Limited", "tax": 341250, "gst": 17063, "tot": 358313 }, { "d": "2026-01-09", "v": "SB/000342", "c": "M/s. Fastman Services", "tax": 17500, "gst": 875, "tot": 18375 }, { "d": "2026-01-09", "v": "SB/000343", "c": "K.K. Enterprises", "tax": 222547, "gst": 11127, "tot": 233674 }, { "d": "2026-01-09", "v": "SB/000344", "c": "Suryoday Akshay Urja", "tax": 17200, "gst": 860, "tot": 18060 }, { "d": "2026-01-09", "v": "SB/000346", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 82500, "gst": 4125, "tot": 86625 }, { "d": "2026-01-10", "v": "SB/000347", "c": "Bhawana Traders & Ashish Kumar Rathi", "tax": 340500, "gst": 17025, "tot": 357525 }, { "d": "2026-01-10", "v": "SB/000348", "c": "Rakesh Verma", "tax": 113500, "gst": 5675, "tot": 119175 }, { "d": "2026-01-10", "v": "SB/000349", "c": "K.K. Enterprises", "tax": 327275, "gst": 16364, "tot": 343639 }, { "d": "2026-01-12", "v": "SB/000350", "c": "Uv Energy Solutions", "tax": 113000, "gst": 5650, "tot": 118650 }, { "d": "2026-01-13", "v": "SB/000351", "c": "Express Tradecom Private Limited", "tax": 257712, "gst": 12886, "tot": 270598 }, { "d": "2026-01-13", "v": "SB/000352", "c": "Shrishti Solar", "tax": 17800, "gst": 890, "tot": 18690 }, { "d": "2026-01-13", "v": "SB/000353", "c": "Chhattisgarh Innovations", "tax": 113500, "gst": 5675, "tot": 119175 }, { "d": "2026-01-13", "v": "SB/000354", "c": "Shakti Solar Solutions", "tax": 339000, "gst": 16950, "tot": 355950 }, { "d": "2026-01-13", "v": "SB/000355", "c": "Suryagrid Energy Llp", "tax": 3450, "gst": 621, "tot": 4071 }, { "d": "2026-01-14", "v": "SB/000356", "c": "Uv Energy Solutions", "tax": 35000, "gst": 1750, "tot": 36750 }, { "d": "2026-01-15", "v": "SB/000357", "c": "Vamika Enterprises", "tax": 227000, "gst": 11350, "tot": 238350 }, { "d": "2026-01-15", "v": "SB/000358", "c": "Ss Enterprises", "tax": 227000, "gst": 11350, "tot": 238350 }, { "d": "2026-01-15", "v": "SB/000359", "c": "Shrishti Solar", "tax": 113500, "gst": 5675, "tot": 119175 }, { "d": "2026-01-16", "v": "SB/000360", "c": "Ad Tech Mitra", "tax": 227000, "gst": 11350, "tot": 238350 }, { "d": "2026-01-16", "v": "SB/000361", "c": "MR KAUSHAL AGRAWAL", "tax": 14053, "gst": 2529, "tot": 16582 }, { "d": "2026-01-16", "v": "SB/000362", "c": "MR GOVIND RAO HANUMANTU", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-17", "v": "SB/000363", "c": "SMT RITA VISHWAKARMA", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-17", "v": "SB/000364", "c": "Electragen Infrastructure", "tax": 1115000, "gst": 55750, "tot": 1170750 }, { "d": "2026-01-17", "v": "SB/000365", "c": "Shri Ram Solar Solution", "tax": 562500, "gst": 28125, "tot": 590625 }, { "d": "2026-01-17", "v": "SB/000366", "c": "Gavel Engineers", "tax": 605299, "gst": 30265, "tot": 635564 }, { "d": "2026-01-19", "v": "SB/000367", "c": "RUDRA POWER & TECNOLOGY", "tax": 113000, "gst": 5650, "tot": 118650 }, { "d": "2026-01-19", "v": "SB/000368", "c": "MONA DEWANGAN", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-19", "v": "SB/000369", "c": "Suryagrid Energy Llp", "tax": 196235, "gst": 10949, "tot": 205000 }, { "d": "2026-01-19", "v": "SB/000370", "c": "Fusion Spark Technologies", "tax": 107110, "gst": 5356, "tot": 112466 }, { "d": "2026-01-19", "v": "SB/000371", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 516989, "gst": 25849, "tot": 542838 }, { "d": "2026-01-19", "v": "SB/000372", "c": "Rarebox Llp", "tax": 225740, "gst": 12678, "tot": 238350 }, { "d": "2026-01-19", "v": "SB/000373", "c": "Ld Construction", "tax": 121060, "gst": 6053, "tot": 127113 }, { "d": "2026-01-20", "v": "SB/000378", "c": "Shree Sai Shradha Associates", "tax": 114000, "gst": 5700, "tot": 119700 }, { "d": "2026-01-20", "v": "SB/000380", "c": "Suryagrid Energy Llp", "tax": 511535, "gst": 27663, "tot": 539198 }, { "d": "2026-01-20", "v": "SB/000374", "c": "Bbn Energy", "tax": 24500, "gst": 4410, "tot": 28910 }, { "d": "2026-01-20", "v": "SB/000375", "c": "M/s Bakers Circle(India)Pvt.Ltd.", "tax": 18536, "gst": 3337, "tot": 21873 }, { "d": "2026-01-20", "v": "SB/000376", "c": "Veer Deepak Tech and Training Private Limited", "tax": 206680, "gst": 11725, "tot": 218405 }, { "d": "2026-01-20", "v": "SB/000377", "c": "Veer Deepak Tech and Training Private Limited", "tax": 224920, "gst": 12637, "tot": 237557 }, { "d": "2026-01-20", "v": "SB/000379", "c": "Veer Deepak Tech and Training Private Limited", "tax": 206680, "gst": 11725, "tot": 218405 }, { "d": "2026-01-20", "v": "SB/000381", "c": "Signate", "tax": 9958, "gst": 1792, "tot": 11750 }, { "d": "2026-01-20", "v": "SB/000382", "c": "Ad Tech Mitra", "tax": 113400, "gst": 5670, "tot": 119070 }, { "d": "2026-01-21", "v": "SB/000383", "c": "Ad Tech Mitra", "tax": 238584, "gst": 11929, "tot": 250513 }, { "d": "2026-01-21", "v": "SB/000384", "c": "Nimje Enterprise", "tax": 315000, "gst": 15750, "tot": 330750 }, { "d": "2026-01-21", "v": "SB/000385", "c": "Dpb Solar", "tax": 17800, "gst": 890, "tot": 18690 }, { "d": "2026-01-21", "v": "SB/000386", "c": "Shrishti Solar", "tax": 17800, "gst": 890, "tot": 18690 }, { "d": "2026-01-21", "v": "SB/000387", "c": "Suryoday Akshay Urja", "tax": 440325, "gst": 22016, "tot": 462341 }, { "d": "2026-01-22", "v": "SB/000388", "c": "BABITA DEWANGAN", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-22", "v": "SB/000389", "c": "Roshan Lal Sinha", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-22", "v": "SB/000390", "c": "Flame Enterprises and Services", "tax": 2329684, "gst": 200096, "tot": 2529780 }, { "d": "2026-01-22", "v": "SB/000391", "c": "Hari Om Construction", "tax": 114000, "gst": 5700, "tot": 119700 }, { "d": "2026-01-22", "v": "SB/000392", "c": "Shrishti Solar", "tax": 17800, "gst": 890, "tot": 18690 }, { "d": "2026-01-23", "v": "SB/000393", "c": "S S Marketing", "tax": 166000, "gst": 8300, "tot": 174300 }, { "d": "2026-01-23", "v": "SB/000394", "c": "Bhawana Traders & Ashish Kumar Rathi", "tax": 340500, "gst": 17025, "tot": 357525 }, { "d": "2026-01-24", "v": "SB/000395", "c": "VIDYASAGAR SHUKLA", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-24", "v": "SB/000396", "c": "RUDRA POWER & TECNOLOGY", "tax": 314700, "gst": 15735, "tot": 330435 }, { "d": "2026-01-24", "v": "SB/000397", "c": "Shakti Solar Solutions", "tax": 31000, "gst": 1550, "tot": 32550 }, { "d": "2026-01-24", "v": "SB/000398", "c": "RUDRA POWER & TECNOLOGY", "tax": 209800, "gst": 10490, "tot": 220290 }, { "d": "2026-01-24", "v": "SB/000399", "c": "Suryagrid Energy Llp", "tax": 227000, "gst": 11350, "tot": 238350 }, { "d": "2026-01-24", "v": "SB/000400", "c": "Patidar Poly Plast Industries", "tax": 3373699, "gst": 289766, "tot": 3663464 }, { "d": "2026-01-27", "v": "SB/000401", "c": "BHUPENDRA KUMAR SAHU", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-27", "v": "SB/000402", "c": "KASHI RAM SAHU", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-27", "v": "SB/000403", "c": "SHRI NAVEEN PRAKASH SAHU", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-27", "v": "SB/000404", "c": "SHASHIKANT SAHU", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-01-27", "v": "SB/000405", "c": "RUDRA POWER & TECNOLOGY", "tax": 209800, "gst": 10490, "tot": 220290 }, { "d": "2026-01-27", "v": "SB/000406", "c": "Suryoday Akshay Urja", "tax": 227000, "gst": 11350, "tot": 238350 }, { "d": "2026-01-27", "v": "SB/000407", "c": "Veer Deepak Tech and Training Private Limited", "tax": 413360, "gst": 23450, "tot": 436810 }, { "d": "2026-01-27", "v": "SB/000408", "c": "AUTO AARAIKE", "tax": 2258, "gst": 406, "tot": 2664 }, { "d": "2026-01-28", "v": "SB/000409", "c": "Drools Pet Food Private Limited", "tax": 9100, "gst": 1638, "tot": 10738 }, { "d": "2026-01-28", "v": "SB/000410", "c": "RUDRA POWER & TECNOLOGY", "tax": 61000, "gst": 3050, "tot": 64050 }, { "d": "2026-01-29", "v": "SB/000411", "c": "Ajay Solar Solutions", "tax": 119070, "gst": 5954, "tot": 125024 }, { "d": "2026-01-29", "v": "SB/000412", "c": "RUDRA POWER & TECNOLOGY", "tax": 220600, "gst": 12434, "tot": 233034 }, { "d": "2026-01-29", "v": "SB/000413", "c": "Ohm Electrical", "tax": 666000, "gst": 33300, "tot": 699300 }, { "d": "2026-01-29", "v": "SB/000414", "c": "Shivam Solar Energy", "tax": 207060, "gst": 10353, "tot": 217413 }, { "d": "2026-01-29", "v": "SB/000415", "c": "Cash", "tax": 80, "gst": 14, "tot": 94 }, { "d": "2026-01-29", "v": "SB/000416", "c": "Ohm Electrical", "tax": 631500, "gst": 31575, "tot": 663075 }, { "d": "2026-01-29", "v": "SB/000417", "c": "Bbn Energy", "tax": 30000, "gst": 1500, "tot": 31500 }, { "d": "2026-01-29", "v": "SB/000418", "c": "Suryoday Akshay Urja", "tax": 113095, "gst": 5655, "tot": 118750 }, { "d": "2026-01-29", "v": "SB/000419", "c": "Ohm Electrical", "tax": 375000, "gst": 18750, "tot": 393750 }, { "d": "2026-01-29", "v": "SB/000420", "c": "Shrishti Solar", "tax": 79380, "gst": 3969, "tot": 83349 }, { "d": "2026-01-30", "v": "SB/000421", "c": "RUDRA POWER & TECNOLOGY", "tax": 320100, "gst": 16707, "tot": 336807 }, { "d": "2026-01-30", "v": "SB/000422", "c": "M/s. Fastman Services", "tax": 54800, "gst": 2740, "tot": 57540 }, { "d": "2026-01-30", "v": "SB/000423", "c": "K.K. Enterprises", "tax": 102000, "gst": 5100, "tot": 107100 }, { "d": "2026-01-31", "v": "SB/000424", "c": "Vedic Energie", "tax": 392209, "gst": 23728, "tot": 415937 }, { "d": "2026-01-31", "v": "SB/000425", "c": "Cash", "tax": 40, "gst": 7, "tot": 47 }, { "d": "2026-01-31", "v": "SB/000426", "c": "Shree Krishna Industries", "tax": 7980000, "gst": 399000, "tot": 8379000 }, { "d": "2026-01-31", "v": "SB/000427", "c": "RUDRA POWER & TECNOLOGY", "tax": 314700, "gst": 15735, "tot": 330435 }, { "d": "2026-01-31", "v": "SB/000428", "c": "Cash", "tax": 80, "gst": 14, "tot": 94 }, { "d": "2026-01-31", "v": "SB/000429", "c": "Cash", "tax": 70, "gst": 13, "tot": 83 }, { "d": "2026-01-31", "v": "SB/000430", "c": "Cash", "tax": 56, "gst": 10, "tot": 66 }, { "d": "2026-02-02", "v": "SB/000431", "c": "Go Cleanz", "tax": 4200, "gst": 756, "tot": 4956 }, { "d": "2026-02-02", "v": "SB/000432", "c": "Om Enterprises", "tax": 225673, "gst": 12676, "tot": 238350 }, { "d": "2026-02-02", "v": "SB/000433", "c": "MR KAUSHAL AGRAWAL", "tax": 847, "gst": 153, "tot": 1000 }, { "d": "2026-02-02", "v": "SB/000434", "c": "Shrishti Solar", "tax": 225010, "gst": 11251, "tot": 236261 }, { "d": "2026-02-02", "v": "SB/000435", "c": "Panchamrit Entertainment Private Limited", "tax": 108000, "gst": 19440, "tot": 127440 }, { "d": "2026-02-03", "v": "SB/000436", "c": "K.K. Enterprises", "tax": 30090, "gst": 1505, "tot": 31595 }, { "d": "2026-02-03", "v": "SB/000437", "c": "Suryoday Akshay Urja", "tax": 106366, "gst": 5318, "tot": 111684 }, { "d": "2026-02-03", "v": "SB/000438", "c": "RUDRA POWER & TECNOLOGY", "tax": 187916, "gst": 10533, "tot": 198450 }, { "d": "2026-02-03", "v": "SB/000439", "c": "Mlc Automotives", "tax": 15254, "gst": 2746, "tot": 18000 }, { "d": "2026-02-03", "v": "SB/000440", "c": "RUDRA POWER & TECNOLOGY", "tax": 1750, "gst": 315, "tot": 2065 }, { "d": "2026-02-04", "v": "SB/000441", "c": "Uv Energy Solutions", "tax": 52500, "gst": 2625, "tot": 55125 }, { "d": "2026-02-04", "v": "SB/000442", "c": "Patidar Polymer", "tax": 2273273, "gst": 195250, "tot": 2468524 }, { "d": "2026-02-04", "v": "SB/000443", "c": "Trident Nariman Point and the Oberoi Mumbai", "tax": 41002, "gst": 7380, "tot": 48382 }, { "d": "2026-02-04", "v": "SB/000444", "c": "Suryagrid Energy Llp", "tax": 103800, "gst": 5190, "tot": 108990 }, { "d": "2026-02-04", "v": "SB/000445", "c": "Panchamrit Entertainment Private Limited", "tax": 9716, "gst": 1749, "tot": 11464 }, { "d": "2026-02-05", "v": "SB/000446", "c": "Suryoday Akshay Urja", "tax": 177132, "gst": 8857, "tot": 185989 }, { "d": "2026-02-05", "v": "SB/000447", "c": "Gaurav Solar Sky", "tax": 106240, "gst": 5312, "tot": 111552 }, { "d": "2026-02-05", "v": "SB/000448", "c": "MADHU SHARMA", "tax": 271667, "gst": 23333, "tot": 295000 }, { "d": "2026-02-05", "v": "SB/000449", "c": "Suryoday Akshay Urja", "tax": 17800, "gst": 890, "tot": 18690 }, { "d": "2026-02-05", "v": "SB/000450", "c": "Shrishti Solar", "tax": 188416, "gst": 10558, "tot": 198975 }, { "d": "2026-02-06", "v": "SB/000451", "c": "K.K. Enterprises", "tax": 131810, "gst": 6591, "tot": 138401 }, { "d": "2026-02-06", "v": "SB/000452", "c": "Hari Om Construction", "tax": 112837, "gst": 6338, "tot": 119175 }, { "d": "2026-02-07", "v": "SB/000453", "c": "Bhawana Traders & Ashish Kumar Rathi", "tax": 674021, "gst": 37880, "tot": 711900 }, { "d": "2026-02-07", "v": "SB/000454", "c": "Suryoday Akshay Urja", "tax": 317298, "gst": 15865, "tot": 333163 }, { "d": "2026-02-07", "v": "SB/000455", "c": "Bhawana Traders & Ashish Kumar Rathi", "tax": 112337, "gst": 6313, "tot": 118650 }, { "d": "2026-02-07", "v": "SB/000456", "c": "Dev Sky Solar", "tax": 112837, "gst": 6338, "tot": 119175 }, { "d": "2026-02-07", "v": "SB/000457", "c": "Shrishti Solar", "tax": 89088, "gst": 4454, "tot": 93542 }, { "d": "2026-02-09", "v": "SB/000458", "c": "Go Cleanz", "tax": 11450, "gst": 2061, "tot": 13511 }, { "d": "2026-02-09", "v": "SB/000459", "c": "Bhavana Auto Electricals", "tax": 112837, "gst": 6338, "tot": 119175 }, { "d": "2026-02-09", "v": "SB/000460", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 516989, "gst": 25849, "tot": 542838 }, { "d": "2026-02-09", "v": "SB/000461", "c": "Panchamrit Entertainment Private Limited", "tax": 7636, "gst": 1374, "tot": 9010 }, { "d": "2026-02-09", "v": "SB/000462", "c": "Divine Power", "tax": 193916, "gst": 10833, "tot": 204750 }, { "d": "2026-02-09", "v": "SB/000463", "c": "Suryagrid Energy Llp", "tax": 31500, "gst": 1575, "tot": 33075 }, { "d": "2026-02-09", "v": "SB/000464", "c": "RUDRA POWER & TECNOLOGY", "tax": 104900, "gst": 5245, "tot": 110145 }, { "d": "2026-02-09", "v": "SB/000465", "c": "K.K. Enterprises", "tax": 79380, "gst": 3969, "tot": 83349 }, { "d": "2026-02-10", "v": "SB/000466", "c": "Avayaya Solar Solutions (Opc) Private Limited", "tax": 289100, "gst": 14455, "tot": 303555 }, { "d": "2026-02-10", "v": "SB/000467", "c": "Veer Deepak Tech and Training Private Limited", "tax": 1750, "gst": 315, "tot": 2065 }, { "d": "2026-02-10", "v": "SB/000468", "c": "K.K. Enterprises", "tax": 79380, "gst": 3969, "tot": 83349 }, { "d": "2026-02-10", "v": "SB/000469", "c": "Sunclave Solartech Private Limited", "tax": 63600, "gst": 4077, "tot": 67677 }, { "d": "2026-02-10", "v": "SB/000470", "c": "Svastika Brilliance Private Limited", "tax": 56700, "gst": 2835, "tot": 59535 }, { "d": "2026-02-10", "v": "SB/000471", "c": "PRANAY KUMAR SINHA", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-02-11", "v": "SB/000472", "c": "Shree Sai Shradha Associates", "tax": 225673, "gst": 12676, "tot": 238350 }, { "d": "2026-02-11", "v": "SB/000473", "c": "Raipur Power and Infra Private Limited", "tax": 550000, "gst": 27500, "tot": 577500 }, { "d": "2026-02-11", "v": "SB/000474", "c": "Ss Enterprises", "tax": 70493, "gst": 3525, "tot": 74018 }, { "d": "2026-02-12", "v": "SB/000475", "c": "Western India Cashew Company (P) Ltd.,", "tax": 40400, "gst": 7272, "tot": 47672 }, { "d": "2026-02-13", "v": "SB/000476", "c": "Suryoday Akshay Urja", "tax": 86000, "gst": 4300, "tot": 90300 }, { "d": "2026-02-13", "v": "SB/000478", "c": "Veer Deepak Tech and Training Private Limited", "tax": 308980, "gst": 15449, "tot": 324429 }, { "d": "2026-02-13", "v": "SB/000477", "c": "Dev Sky Solar", "tax": 113500, "gst": 5675, "tot": 119175 }, { "d": "2026-02-13", "v": "SB/000479", "c": "TULARAM CHANDRA", "tax": 285480, "gst": 24520, "tot": 310000 }, { "d": "2026-02-13", "v": "SB/000480", "c": "Veer Deepak Tech and Training Private Limited", "tax": 3500, "gst": 630, "tot": 4130 }, { "d": "2026-02-14", "v": "SB/000481", "c": "Veer Deepak Tech and Training Private Limited", "tax": 3500, "gst": 630, "tot": 4130 }, { "d": "2026-02-14", "v": "SB/000482", "c": "Vihaan Solar Infra", "tax": 448000, "gst": 22400, "tot": 470400 }, { "d": "2026-02-14", "v": "SB/000483", "c": "Panchamrit Entertainment Private Limited", "tax": 12726, "gst": 2291, "tot": 15017 }, { "d": "2026-02-16", "v": "SB/000484", "c": "SURABHI PATEL", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-02-17", "v": "SB/000485", "c": "FAKIR MOHAN NAIK", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-02-17", "v": "SB/000486", "c": "Ajay Solar Solutions", "tax": 133110, "gst": 6656, "tot": 139766 }, { "d": "2026-02-17", "v": "SB/000487", "c": "Ad Tech Mitra", "tax": 54821, "gst": 2741, "tot": 57562 }, { "d": "2026-02-17", "v": "SB/000488", "c": "Ad Tech Mitra", "tax": 7129, "gst": 1283, "tot": 8412 }, { "d": "2026-02-18", "v": "SB/000489", "c": "SHRI BHOLA RAM DEWANGAN", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-02-18", "v": "SB/000490", "c": "Suryoday Akshay Urja", "tax": 441960, "gst": 22098, "tot": 464058 }, { "d": "2026-02-18", "v": "SB/000491", "c": "Suryoday Akshay Urja", "tax": 88392, "gst": 4420, "tot": 92812 }, { "d": "2026-02-18", "v": "SB/000492", "c": "Shrishti Solar", "tax": 113000, "gst": 5650, "tot": 118650 }, { "d": "2026-02-18", "v": "SB/000493", "c": "Uv Energy Solutions", "tax": 59740, "gst": 2987, "tot": 62727 }, { "d": "2026-02-18", "v": "SB/000494", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 82500, "gst": 4125, "tot": 86625 }, { "d": "2026-02-18", "v": "SB/000495", "c": "SARIKA SACHDEV", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-02-19", "v": "SB/000497", "c": "Lambency Solar", "tax": 73500, "gst": 3675, "tot": 77175 }, { "d": "2026-02-19", "v": "SB/000496", "c": "Suruj Solar", "tax": 220000, "gst": 11000, "tot": 231000 }, { "d": "2026-02-19", "v": "SB/000498", "c": "Shri Ventures", "tax": 222830, "gst": 11382, "tot": 234212 }, { "d": "2026-02-19", "v": "SB/000499", "c": "Nimje Enterprise", "tax": 559000, "gst": 27950, "tot": 586950 }, { "d": "2026-02-20", "v": "SB/000501", "c": "Lakshya Enterprises", "tax": 225673, "gst": 12676, "tot": 238350 }, { "d": "2026-02-20", "v": "SB/000503", "c": "Gaurav Solar Sky", "tax": 133110, "gst": 6656, "tot": 139766 }, { "d": "2026-02-20", "v": "SB/000500", "c": "SHRI DUDHESHWAR SINGH CHANDRAKAR", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-02-21", "v": "SB/000502", "c": "Solar Wala", "tax": 147900, "gst": 7395, "tot": 155295 }, { "d": "2026-02-21", "v": "SB/000505", "c": "Rathod Renewables", "tax": 174140, "gst": 9962, "tot": 184102 }, { "d": "2026-02-21", "v": "SB/000506", "c": "SMT. ANNAPURNA YADAV .", "tax": 212729, "gst": 18271, "tot": 231000 }, { "d": "2026-02-23", "v": "SB/000507", "c": "Drools Pet Food Private Limited", "tax": 8800, "gst": 1584, "tot": 10384 }, { "d": "2026-02-23", "v": "SB/000508", "c": "Drools Pet Food Private Limited", "tax": 35700, "gst": 6426, "tot": 42126 }, { "d": "2026-02-23", "v": "SB/000509", "c": "Drools Pet Food Private Limited", "tax": 13300, "gst": 2394, "tot": 15694 }, { "d": "2026-02-24", "v": "SB/000511", "c": "NARENDRA DIGAMBAR LONDHE", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-02-24", "v": "SB/000510", "c": "POONAM SHARMA", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-02-24", "v": "SB/000512", "c": "S S Marketing", "tax": 378000, "gst": 18900, "tot": 396900 }, { "d": "2026-02-25", "v": "SB/000513", "c": "RUDRA POWER & TECNOLOGY", "tax": 10200, "gst": 1836, "tot": 12036 }, { "d": "2026-02-25", "v": "SB/000514", "c": "Gayatri Solar Power", "tax": 242235, "gst": 13009, "tot": 255244 }, { "d": "2026-02-26", "v": "SB/000515", "c": "Lakshya Enterprises", "tax": 223670, "gst": 12580, "tot": 236250 }, { "d": "2026-02-26", "v": "SB/000516", "c": "Shivshakti Enterprises", "tax": 468930, "gst": 23447, "tot": 492377 }, { "d": "2026-02-26", "v": "SB/000517", "c": "Shivshakti Enterprises", "tax": 468930, "gst": 23447, "tot": 492377 }, { "d": "2026-02-27", "v": "SB/000518", "c": "UTTAM KUMAR SAHU", "tax": 180497, "gst": 15503, "tot": 196000 }, { "d": "2026-02-27", "v": "SB/000519", "c": "Kanha Spark Solar", "tax": 335505, "gst": 18871, "tot": 354376 }, { "d": "2026-02-27", "v": "SB/000520", "c": "Shivshakti Enterprises", "tax": 468930, "gst": 23447, "tot": 492377 }, { "d": "2026-02-27", "v": "SB/000521", "c": "Shivshakti Enterprises", "tax": 85260, "gst": 4263, "tot": 89523 }, { "d": "2026-02-28", "v": "SB/000522", "c": "Panchamrit Entertainment Private Limited", "tax": 12726, "gst": 2291, "tot": 15017 }, { "d": "2026-02-28", "v": "SB/000523", "c": "Ohm Electrical", "tax": 107839, "gst": 6087, "tot": 113925 }, { "d": "2026-02-28", "v": "SB/000524", "c": "Nimje Enterprise", "tax": 277663, "gst": 20729, "tot": 298392 }];
+    const DB_PUR = [{ "d": "2025-11-03", "v": "22", "c": "Ajanta Electricals", "tax": 23880, "gst": 4298, "tot": 28178 }, { "d": "2025-11-03", "v": "23", "c": "Sudhama Nut Bolt House", "tax": 3000, "gst": 540, "tot": 3540 }, { "d": "2025-11-04", "v": "24", "c": "Amrat Timber Co.", "tax": 5581, "gst": 1005, "tot": 6586 }, { "d": "2025-11-05", "v": "27", "c": "Kesri Metal Ltd", "tax": 1000, "gst": 180, "tot": 1180 }, { "d": "2025-11-05", "v": "39", "c": "Kesri Metal Ltd", "tax": 23240, "gst": 4183, "tot": 27423 }, { "d": "2025-11-05", "v": "57", "c": "Waaree Energies Limited", "tax": 298011, "gst": 14900, "tot": 312911 }, { "d": "2025-11-06", "v": "25", "c": "Arihant Electricals & Hardware", "tax": 2983, "gst": 537, "tot": 3520 }, { "d": "2025-11-06", "v": "37", "c": "Equinox Enermech Limited", "tax": 77500, "gst": 3875, "tot": 81375 }, { "d": "2025-11-06", "v": "101", "c": "Cgsolar", "tax": 74430, "gst": 13397, "tot": 87827 }, { "d": "2025-11-06", "v": "43", "c": "Arora Trading Company", "tax": 15740, "gst": 2833, "tot": 18573 }, { "d": "2025-11-07", "v": "26", "c": "Kesri Metal Ltd", "tax": 48408, "gst": 8713, "tot": 57121 }, { "d": "2025-11-07", "v": "34", "c": "Goma", "tax": 35826, "gst": 6448, "tot": 42274 }, { "d": "2025-11-10", "v": "28", "c": "Hype Global Industries Private Limited", "tax": 11250, "gst": 2025, "tot": 13275 }, { "d": "2025-11-11", "v": "38", "c": "Equinox Enermech Limited", "tax": 50000, "gst": 2500, "tot": 52500 }, { "d": "2025-11-11", "v": "41", "c": "Durgesh Solar Solution Private Limited", "tax": 342000, "gst": 17100, "tot": 359100 }, { "d": "2025-11-11", "v": "99", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 40500, "gst": 2025, "tot": 42525 }, { "d": "2025-11-13", "v": "40", "c": "Sudhama Nut Bolt House", "tax": 500, "gst": 90, "tot": 590 }, { "d": "2025-11-13", "v": "77", "c": "Waaree Energies Limited", "tax": 51642, "gst": 2582, "tot": 54224 }, { "d": "2025-11-13", "v": "110", "c": "Waaree Energies Limited", "tax": 90098, "gst": 4505, "tot": 94603 }, { "d": "2025-11-13", "v": "78", "c": "Waaree Energies Limited", "tax": 173231, "gst": 8662, "tot": 181893 }, { "d": "2025-11-14", "v": "118", "c": "Durgesh Solar Solution Private Limited", "tax": 228000, "gst": 11400, "tot": 239400 }, { "d": "2025-11-15", "v": "36", "c": "Equinox Enermech Limited", "tax": 77500, "gst": 3875, "tot": 81375 }, { "d": "2025-11-15", "v": "116", "c": "M/s Palak Trading", "tax": 212000, "gst": 10600, "tot": 222600 }, { "d": "2025-11-17", "v": "33", "c": "M/s Palak Trading", "tax": 950000, "gst": 47500, "tot": 997500 }, { "d": "2025-11-18", "v": "42", "c": "M/s Palak Trading", "tax": 525000, "gst": 26250, "tot": 551250 }, { "d": "2025-11-18", "v": "119", "c": "Durgesh Solar Solution Private Limited", "tax": 228000, "gst": 11400, "tot": 239400 }, { "d": "2025-11-18", "v": "91", "c": "Equinox Enermech Limited", "tax": 75000, "gst": 3750, "tot": 78750 }, { "d": "2025-11-19", "v": "84", "c": "Ajanta Electricals", "tax": 2050, "gst": 369, "tot": 2419 }, { "d": "2025-11-19", "v": "192", "c": "G R Electricals", "tax": 19080, "gst": 3434, "tot": 22514 }, { "d": "2025-11-20", "v": "80", "c": "Patel Electricals", "tax": 681000, "gst": 34050, "tot": 715050 }, { "d": "2025-11-20", "v": "82", "c": "Galileo Associates", "tax": 4818, "gst": 867, "tot": 5685 }, { "d": "2025-11-21", "v": "83", "c": "Satya Polymart", "tax": 1803, "gst": 297, "tot": 2100 }, { "d": "2025-11-22", "v": "81", "c": "Waacab", "tax": 108610, "gst": 19550, "tot": 128160 }, { "d": "2025-11-22", "v": "89", "c": "Waaree Energies Limited", "tax": 3768283, "gst": 188414, "tot": 3956697 }, { "d": "2025-11-22", "v": "85", "c": "Satya Polymart", "tax": 15800, "gst": 2736, "tot": 18536 }, { "d": "2025-11-24", "v": "87", "c": "Waaree Energies Limited", "tax": 2476584, "gst": 123829, "tot": 2600413 }, { "d": "2025-11-24", "v": "97", "c": "Equinox Enermech Limited", "tax": 71100, "gst": 3555, "tot": 74655 }, { "d": "2025-11-24", "v": "199", "c": "Hype Global Industries Private Limited", "tax": 30350, "gst": 5008, "tot": 35358 }, { "d": "2025-11-25", "v": "88", "c": "Shakti Solar Solutions", "tax": 375370, "gst": 67567, "tot": 442937 }, { "d": "2025-11-25", "v": "90", "c": "Cgsolar", "tax": 84026, "gst": 15124, "tot": 99150 }, { "d": "2025-11-26", "v": "117", "c": "Waaree Energies Limited", "tax": 345673, "gst": 17284, "tot": 362957 }, { "d": "2025-11-26", "v": "127", "c": "R S Battery & Inverter", "tax": 123000, "gst": 6150, "tot": 129150 }, { "d": "2025-11-27", "v": "92", "c": "Shree Shankar Machinery Stores", "tax": 11500, "gst": 2070, "tot": 13570 }, { "d": "2025-11-27", "v": "100", "c": "D B Electronic", "tax": 19450, "gst": 3501, "tot": 22951 }, { "d": "2025-11-27", "v": "93", "c": "Hype Global Industries Private Limited", "tax": 15881, "gst": 2859, "tot": 18740 }, { "d": "2025-11-28", "v": "94", "c": "Neatnature Solutions Private Limited", "tax": 274801, "gst": 15339, "tot": 290140 }, { "d": "2025-11-28", "v": "105", "c": "Equinox Enermech Limited", "tax": 131500, "gst": 6575, "tot": 138075 }, { "d": "2025-11-29", "v": "95", "c": "M/s Palak Trading", "tax": 840000, "gst": 42000, "tot": 882000 }, { "d": "2025-11-29", "v": "102", "c": "Waaree Energies Limited", "tax": 92395, "gst": 4620, "tot": 97015 }, { "d": "2025-11-29", "v": "189", "c": "Arihant Electricals & Hardware", "tax": 2941, "gst": 530, "tot": 3471 }, { "d": "2025-12-01", "v": "96", "c": "M/s Palak Trading", "tax": 562500, "gst": 28125, "tot": 590625 }, { "d": "2025-12-01", "v": "98", "c": "Waaree Energies Limited", "tax": 3839659, "gst": 191983, "tot": 4031642 }, { "d": "2025-12-04", "v": "121", "c": "Waacab", "tax": 135626, "gst": 24412, "tot": 160038 }, { "d": "2025-12-04", "v": "194", "c": "Shree Balaji Hardware and Sanitary", "tax": 14743, "gst": 2654, "tot": 17397 }, { "d": "2025-12-05", "v": "142", "c": "Durgesh Solar Solution Private Limited", "tax": 567500, "gst": 28375, "tot": 595875 }, { "d": "2025-12-05", "v": "126", "c": "Equinox Enermech Limited", "tax": 77500, "gst": 3875, "tot": 81375 }, { "d": "2025-12-05", "v": "157", "c": "Avon Earthing Private Limited", "tax": 17400, "gst": 3132, "tot": 20532 }, { "d": "2025-12-05", "v": "209", "c": "Hype Global Industries Private Limited", "tax": 12000, "gst": 2160, "tot": 14160 }, { "d": "2025-12-06", "v": "104", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 468683, "gst": 23434, "tot": 492117 }, { "d": "2025-12-06", "v": "103", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 468683, "gst": 23434, "tot": 492117 }, { "d": "2025-12-06", "v": "114", "c": "Maateshwari Marketing Services", "tax": 5400, "gst": 972, "tot": 6372 }, { "d": "2025-12-06", "v": "206", "c": "Shakti Solar Solutions", "tax": 99645, "gst": 17936, "tot": 117581 }, { "d": "2025-12-06", "v": "207", "c": "Shakti Solar Solutions", "tax": 1200, "gst": 216, "tot": 1416 }, { "d": "2025-12-06", "v": "132", "c": "SS INFOTECH", "tax": 14500, "gst": 0, "tot": 14500 }, { "d": "2025-12-06", "v": "154", "c": "Cgsolar", "tax": 1600, "gst": 288, "tot": 1888 }, { "d": "2025-12-08", "v": "140", "c": "Durgesh Solar Solution Private Limited", "tax": 318000, "gst": 15900, "tot": 333900 }, { "d": "2025-12-08", "v": "156", "c": "Neatnature Solutions Private Limited", "tax": 133500, "gst": 6675, "tot": 140175 }, { "d": "2025-12-08", "v": "120", "c": "Cosmo Electricals", "tax": 166000, "gst": 29880, "tot": 195880 }, { "d": "2025-12-08", "v": "153", "c": "Avon Earthing Private Limited", "tax": 17400, "gst": 3132, "tot": 20532 }, { "d": "2025-12-09", "v": "106", "c": "Waaree Energies Limited", "tax": 3839659, "gst": 191983, "tot": 4031642 }, { "d": "2025-12-09", "v": "129", "c": "Galileo Associates", "tax": 20175, "gst": 3632, "tot": 23807 }, { "d": "2025-12-10", "v": "139", "c": "Durgesh Solar Solution Private Limited", "tax": 567500, "gst": 28375, "tot": 595875 }, { "d": "2025-12-10", "v": "141", "c": "Durgesh Solar Solution Private Limited", "tax": 307500, "gst": 15375, "tot": 322875 }, { "d": "2025-12-11", "v": "131", "c": "SS INFOTECH", "tax": 17200, "gst": 0, "tot": 17200 }, { "d": "2025-12-11", "v": "123", "c": "Waacab", "tax": 42352, "gst": 6157, "tot": 48509 }, { "d": "2025-12-11", "v": "125", "c": "G R Electricals", "tax": 19548, "gst": 3519, "tot": 23067 }, { "d": "2025-12-12", "v": "181", "c": "M/s Palak Trading", "tax": 562500, "gst": 28125, "tot": 590625 }, { "d": "2025-12-12", "v": "324", "c": "Shakti Solar Solutions", "tax": 42600, "gst": 7668, "tot": 50268 }, { "d": "2025-12-12", "v": "198", "c": "Shakti Solar Solutions", "tax": 9600, "gst": 1728, "tot": 11328 }, { "d": "2025-12-12", "v": "216", "c": "Shakti Solar Solutions", "tax": 31010, "gst": 5582, "tot": 36592 }, { "d": "2025-12-12", "v": "108", "c": "R S Battery & Inverter", "tax": 87500, "gst": 4375, "tot": 91875 }, { "d": "2025-12-12", "v": "111", "c": "Waaree Energies Limited", "tax": 3056790, "gst": 152840, "tot": 3209630 }, { "d": "2025-12-12", "v": "112", "c": "Kesri Metal Ltd", "tax": 15000, "gst": 2700, "tot": 17700 }, { "d": "2025-12-12", "v": "109", "c": "(cancelled )", "tax": 0, "gst": 0, "tot": 0 }, { "d": "2025-12-13", "v": "107", "c": "Shree Enterprises", "tax": 170982, "gst": 8549, "tot": 179531 }, { "d": "2025-12-13", "v": "135", "c": "Waacab", "tax": 35747, "gst": 6434, "tot": 42181 }, { "d": "2025-12-13", "v": "113", "c": "R S Battery & Inverter", "tax": 87500, "gst": 4375, "tot": 91875 }, { "d": "2025-12-13", "v": "124", "c": "Arihant Electricals & Hardware", "tax": 7120, "gst": 1282, "tot": 8402 }, { "d": "2025-12-13", "v": "143", "c": "Waaree Power Private Limited", "tax": 333779, "gst": 16689, "tot": 350468 }, { "d": "2025-12-15", "v": "130", "c": "SS INFOTECH", "tax": 7900, "gst": 0, "tot": 7900 }, { "d": "2025-12-15", "v": "128", "c": "Waaree Energies Limited", "tax": 3839659, "gst": 191983, "tot": 4031642 }, { "d": "2025-12-16", "v": "180", "c": "M/s Palak Trading", "tax": 562500, "gst": 28125, "tot": 590625 }, { "d": "2025-12-16", "v": "115", "c": "Sudhama Nut Bolt House", "tax": 5110, "gst": 920, "tot": 6030 }, { "d": "2025-12-16", "v": "214", "c": "WORK INDIA", "tax": 3000, "gst": 540, "tot": 3540 }, { "d": "2025-12-17", "v": "122", "c": "G R Electricals", "tax": 30396, "gst": 5471, "tot": 35867 }, { "d": "2025-12-17", "v": "137", "c": "D B Electronic", "tax": 30900, "gst": 5562, "tot": 36462 }, { "d": "2025-12-18", "v": "138", "c": "D B Electronic", "tax": 20300, "gst": 3654, "tot": 23954 }, { "d": "2025-12-18", "v": "151", "c": "Galileo Associates", "tax": 36505, "gst": 6571, "tot": 43076 }, { "d": "2025-12-18", "v": "155", "c": "Raas Distributors", "tax": 26065, "gst": 4692, "tot": 30757 }, { "d": "2025-12-18", "v": "200", "c": "Satya Polymart", "tax": 28028, "gst": 5045, "tot": 33073 }, { "d": "2025-12-19", "v": "133", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 468683, "gst": 23434, "tot": 492117 }, { "d": "2025-12-19", "v": "136", "c": "Best Steel Solutions Private Limited", "tax": 101495, "gst": 18269, "tot": 119764 }, { "d": "2025-12-19", "v": "168", "c": "Avon Earthing Private Limited", "tax": 26100, "gst": 4698, "tot": 30798 }, { "d": "2025-12-19", "v": "210", "c": "Hype Global Industries Private Limited", "tax": 13764, "gst": 2477, "tot": 16241 }, { "d": "2025-12-20", "v": "134", "c": "Durgesh Solar Solution Private Limited", "tax": 47600, "gst": 2380, "tot": 49980 }, { "d": "2025-12-20", "v": "146", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 165000, "gst": 8250, "tot": 173250 }, { "d": "2025-12-20", "v": "147", "c": "Equinox Enermech Limited", "tax": 100000, "gst": 5000, "tot": 105000 }, { "d": "2025-12-22", "v": "148", "c": "Equinox Enermech Limited", "tax": 155000, "gst": 7750, "tot": 162750 }, { "d": "2025-12-23", "v": "325", "c": "Shakti Solar Solutions", "tax": 31010, "gst": 5582, "tot": 36592 }, { "d": "2025-12-23", "v": "144", "c": "Sudhama Nut Bolt House", "tax": 1120, "gst": 202, "tot": 1322 }, { "d": "2025-12-23", "v": "152", "c": "Arora Trading Company", "tax": 20800, "gst": 3744, "tot": 24544 }, { "d": "2025-12-23", "v": "150", "c": "M/s Palak Trading", "tax": 546858, "gst": 27343, "tot": 574201 }, { "d": "2025-12-23", "v": "145", "c": "R S Battery & Inverter", "tax": 128500, "gst": 6425, "tot": 134925 }, { "d": "2025-12-23", "v": "326", "c": "Shakti Solar Solutions", "tax": 32428, "gst": 5837, "tot": 38265 }, { "d": "2025-12-23", "v": "149", "c": "Waacab", "tax": 37500, "gst": 6750, "tot": 44250 }, { "d": "2025-12-25", "v": "159", "c": "Raas Distributors", "tax": 14893, "gst": 2681, "tot": 17574 }, { "d": "2025-12-25", "v": "171", "c": "(cancelled )", "tax": 0, "gst": 0, "tot": 0 }, { "d": "2025-12-25", "v": "173", "c": "(cancelled )", "tax": 0, "gst": 0, "tot": 0 }, { "d": "2025-12-25", "v": "165", "c": "Arihant Electricals & Hardware", "tax": 1274, "gst": 230, "tot": 1504 }, { "d": "2025-12-26", "v": "161", "c": "Urja Sales", "tax": 557500, "gst": 27875, "tot": 585375 }, { "d": "2025-12-26", "v": "158", "c": "Hype Global Industries Private Limited", "tax": 12750, "gst": 2295, "tot": 15045 }, { "d": "2025-12-26", "v": "160", "c": "Durgesh Solar Solution Private Limited", "tax": 113500, "gst": 5675, "tot": 119175 }, { "d": "2025-12-26", "v": "167", "c": "Waaree Energies Limited", "tax": 3839659, "gst": 191983, "tot": 4031642 }, { "d": "2025-12-26", "v": "170", "c": "Waaree Power Private Limited", "tax": 794915, "gst": 39746, "tot": 834661 }, { "d": "2025-12-29", "v": "162", "c": "Urja Sales", "tax": 111500, "gst": 5575, "tot": 117075 }, { "d": "2025-12-29", "v": "163", "c": "Hype Global Industries Private Limited", "tax": 2750, "gst": 495, "tot": 3245 }, { "d": "2025-12-29", "v": "166", "c": "Raas Distributors", "tax": 1177, "gst": 212, "tot": 1389 }, { "d": "2025-12-30", "v": "164", "c": "Urja Sales", "tax": 334500, "gst": 16725, "tot": 351225 }, { "d": "2025-12-31", "v": "176", "c": "Suruj Solar", "tax": 307626, "gst": 55372, "tot": 362998 }, { "d": "2025-12-31", "v": "177", "c": "Waacab", "tax": 31715, "gst": 5709, "tot": 37424 }, { "d": "2025-12-31", "v": "215", "c": "Jaika Automobiles and Finance Pvt Ltd", "tax": 479642, "gst": 86336, "tot": 565978 }, { "d": "2026-01-01", "v": "169", "c": "R S Battery & Inverter", "tax": 240000, "gst": 12000, "tot": 252000 }, { "d": "2026-01-02", "v": "193", "c": "Avon Earthing Private Limited", "tax": 42000, "gst": 7560, "tot": 49560 }, { "d": "2026-01-02", "v": "184", "c": "Raas Distributors", "tax": 1995, "gst": 359, "tot": 2354 }, { "d": "2026-01-02", "v": "190", "c": "Raas Distributors", "tax": 7980, "gst": 1436, "tot": 9416 }, { "d": "2026-01-02", "v": "187", "c": "Waaree Energies Limited", "tax": 283549, "gst": 14177, "tot": 297726 }, { "d": "2026-01-02", "v": "188", "c": "Waaree Energies Limited", "tax": 225245, "gst": 11262, "tot": 236507 }, { "d": "2026-01-02", "v": "196", "c": "Dishachi Energy", "tax": 1315, "gst": 237, "tot": 1552 }, { "d": "2026-01-03", "v": "172", "c": "Hype Global Industries Private Limited", "tax": 27900, "gst": 5022, "tot": 32922 }, { "d": "2026-01-05", "v": "174", "c": "Kesri Metal Ltd", "tax": 61600, "gst": 11088, "tot": 72688 }, { "d": "2026-01-05", "v": "175", "c": "Urja Sales", "tax": 223000, "gst": 11150, "tot": 234150 }, { "d": "2026-01-05", "v": "178", "c": "R S Battery & Inverter", "tax": 80000, "gst": 4000, "tot": 84000 }, { "d": "2026-01-05", "v": "179", "c": "Sms Industrial Suppliers", "tax": 25177, "gst": 4532, "tot": 29709 }, { "d": "2026-01-09", "v": "195", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 54891, "gst": 2744, "tot": 57635 }, { "d": "2026-01-09", "v": "182", "c": "Urja Sales", "tax": 334500, "gst": 16725, "tot": 351225 }, { "d": "2026-01-09", "v": "183", "c": "Arihant Electricals & Hardware", "tax": 2064, "gst": 372, "tot": 2436 }, { "d": "2026-01-09", "v": "197", "c": "D B Electronic", "tax": 45600, "gst": 8208, "tot": 53808 }, { "d": "2026-01-10", "v": "185", "c": "Urja Sales", "tax": 111500, "gst": 5575, "tot": 117075 }, { "d": "2026-01-10", "v": "186", "c": "Urja Sales", "tax": 334500, "gst": 16725, "tot": 351225 }, { "d": "2026-01-10", "v": "191", "c": "G R Electricals", "tax": 90864, "gst": 16356, "tot": 107220 }, { "d": "2026-01-10", "v": "208", "c": "Waacab", "tax": 127550, "gst": 22959, "tot": 150509 }, { "d": "2026-01-11", "v": "204", "c": "Inext Innovations Private Limited", "tax": 114322, "gst": 20578, "tot": 134900 }, { "d": "2026-01-12", "v": "201", "c": "Urja Sales", "tax": 111500, "gst": 5575, "tot": 117075 }, { "d": "2026-01-12", "v": "213", "c": "Waaree Energies Limited", "tax": 4625749, "gst": 231287, "tot": 4857036 }, { "d": "2026-01-12", "v": "217", "c": "R S Battery & Inverter", "tax": 80000, "gst": 4000, "tot": 84000 }, { "d": "2026-01-13", "v": "202", "c": "Urja Sales", "tax": 334500, "gst": 16725, "tot": 351225 }, { "d": "2026-01-13", "v": "220", "c": "Waaree Energies Limited", "tax": 0, "gst": 0, "tot": 0 }, { "d": "2026-01-13", "v": "203", "c": "Urja Sales", "tax": 111500, "gst": 5575, "tot": 117075 }, { "d": "2026-01-14", "v": "211", "c": "M/s Palak Trading", "tax": 555000, "gst": 27750, "tot": 582750 }, { "d": "2026-01-15", "v": "205", "c": "Kesri Metal Ltd", "tax": 104400, "gst": 18792, "tot": 123192 }, { "d": "2026-01-15", "v": "212", "c": "M/s Palak Trading", "tax": 222000, "gst": 11100, "tot": 233100 }, { "d": "2026-01-15", "v": "221", "c": "Equinox Enermech Limited", "tax": 104600, "gst": 5230, "tot": 109830 }, { "d": "2026-01-16", "v": "219", "c": "R S Battery & Inverter", "tax": 160000, "gst": 8000, "tot": 168000 }, { "d": "2026-01-16", "v": "234", "c": "M/s Palak Trading", "tax": 222000, "gst": 11100, "tot": 233100 }, { "d": "2026-01-16", "v": "230", "c": "Waaree Power Private Limited", "tax": 800649, "gst": 40032, "tot": 840681 }, { "d": "2026-01-16", "v": "285", "c": "Avon Earthing Private Limited", "tax": 42000, "gst": 7560, "tot": 49560 }, { "d": "2026-01-17", "v": "218", "c": "R S Battery & Inverter", "tax": 99000, "gst": 4950, "tot": 103950 }, { "d": "2026-01-19", "v": "231", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 333590, "gst": 16680, "tot": 350270 }, { "d": "2026-01-19", "v": "232", "c": "Waaree Energies Limited", "tax": 1042743, "gst": 52137, "tot": 1094880 }, { "d": "2026-01-19", "v": "222", "c": "Lavkush Sales", "tax": 10009, "gst": 1991, "tot": 12000 }, { "d": "2026-01-19", "v": "227", "c": "Shakti Solar Solutions", "tax": 2100, "gst": 378, "tot": 2478 }, { "d": "2026-01-19", "v": "246", "c": "Galaxy International", "tax": 2960, "gst": 533, "tot": 3493 }, { "d": "2026-01-20", "v": "226", "c": "Hype Global Industries Private Limited", "tax": 23650, "gst": 4257, "tot": 27907 }, { "d": "2026-01-20", "v": "228", "c": "Patel Electricals", "tax": 118000, "gst": 5900, "tot": 123900 }, { "d": "2026-01-20", "v": "233", "c": "Waaree Energies Limited", "tax": 1961108, "gst": 98055, "tot": 2059163 }, { "d": "2026-01-20", "v": "247", "c": "Galaxy International", "tax": 16400, "gst": 2952, "tot": 19352 }, { "d": "2026-01-20", "v": "229", "c": "Sudhama Nut Bolt House", "tax": 1310, "gst": 236, "tot": 1546 }, { "d": "2026-01-21", "v": "223", "c": "Durgesh Solar Solution Private Limited", "tax": 306000, "gst": 15300, "tot": 321300 }, { "d": "2026-01-21", "v": "224", "c": "Durgesh Solar Solution Private Limited", "tax": 557500, "gst": 27875, "tot": 585375 }, { "d": "2026-01-21", "v": "225", "c": "Best Steel Solutions Private Limited", "tax": 100943, "gst": 18170, "tot": 119113 }, { "d": "2026-01-22", "v": "240", "c": "Raas Distributors", "tax": 42645, "gst": 7676, "tot": 50321 }, { "d": "2026-01-23", "v": "239", "c": "Rainbow Associates", "tax": 3000, "gst": 150, "tot": 3150 }, { "d": "2026-01-23", "v": "241", "c": "R S Battery & Inverter", "tax": 90000, "gst": 16200, "tot": 106200 }, { "d": "2026-01-23", "v": "250", "c": "Waaree Energies Limited", "tax": 5056020, "gst": 252801, "tot": 5308821 }, { "d": "2026-01-24", "v": "238", "c": "Durgesh Solar Solution Private Limited", "tax": 223000, "gst": 11150, "tot": 234150 }, { "d": "2026-01-24", "v": "236", "c": "Equinox Enermech Limited", "tax": 104600, "gst": 5230, "tot": 109830 }, { "d": "2026-01-24", "v": "265", "c": "Kesri Metal Ltd", "tax": 16920, "gst": 3046, "tot": 19966 }, { "d": "2026-01-24", "v": "237", "c": "Avon Earthing Private Limited", "tax": 40000, "gst": 7200, "tot": 47200 }, { "d": "2026-01-24", "v": "252", "c": "Waaree Energies Limited", "tax": 247520, "gst": 12376, "tot": 259896 }, { "d": "2026-01-27", "v": "235", "c": "Sudhama Nut Bolt House", "tax": 2660, "gst": 479, "tot": 3139 }, { "d": "2026-01-27", "v": "242", "c": "R S Battery & Inverter", "tax": 370000, "gst": 18500, "tot": 388500 }, { "d": "2026-01-27", "v": "243", "c": "Satya Polymart", "tax": 18500, "gst": 3186, "tot": 21686 }, { "d": "2026-01-27", "v": "244", "c": "Md Enterprises", "tax": 32203, "gst": 5797, "tot": 38000 }, { "d": "2026-01-27", "v": "245", "c": "G R Electricals", "tax": 10508, "gst": 1891, "tot": 12399 }, { "d": "2026-01-27", "v": "248", "c": "Patel Electricals", "tax": 37500, "gst": 6750, "tot": 44250 }, { "d": "2026-01-28", "v": "249", "c": "Patel Electricals", "tax": 59000, "gst": 2950, "tot": 61950 }, { "d": "2026-01-29", "v": "251", "c": "Hope Energy", "tax": 29000, "gst": 5220, "tot": 34220 }, { "d": "2026-01-29", "v": "281", "c": "Sha Custom Paints", "tax": 172881, "gst": 31119, "tot": 204000 }, { "d": "2026-01-30", "v": "256", "c": "Waaree Energies Limited", "tax": 7763951, "gst": 388198, "tot": 8152149 }, { "d": "2026-01-30", "v": "257", "c": "Waacab", "tax": 108918, "gst": 16673, "tot": 125591 }, { "d": "2026-01-30", "v": "262", "c": "Kesri Metal Ltd", "tax": 115200, "gst": 20736, "tot": 135936 }, { "d": "2026-01-30", "v": "264", "c": "Arihant Electricals & Hardware", "tax": 3223, "gst": 580, "tot": 3803 }, { "d": "2026-01-30", "v": "284", "c": "Avon Earthing Private Limited", "tax": 40000, "gst": 7200, "tot": 47200 }, { "d": "2026-01-31", "v": "263", "c": "Makewell Composite", "tax": 153964, "gst": 27714, "tot": 181678 }, { "d": "2026-01-31", "v": "286", "c": "Neatnature Solutions Private Limited", "tax": 13000, "gst": 2340, "tot": 15340 }, { "d": "2026-02-02", "v": "254", "c": "Deepsikha Enterprises", "tax": 100000, "gst": 18000, "tot": 118000 }, { "d": "2026-02-02", "v": "259", "c": "R S Battery & Inverter", "tax": 320000, "gst": 16000, "tot": 336000 }, { "d": "2026-02-03", "v": "253", "c": "Arihant Electricals & Hardware", "tax": 1338, "gst": 241, "tot": 1579 }, { "d": "2026-02-03", "v": "258", "c": "R S Battery & Inverter", "tax": 99000, "gst": 4950, "tot": 103950 }, { "d": "2026-02-04", "v": "255", "c": "Shivshakti Enterprises(PURCHASE)", "tax": 8524, "gst": 1534, "tot": 10058 }, { "d": "2026-02-04", "v": "277", "c": "Waaree Energies Limited", "tax": 298011, "gst": 14900, "tot": 312911 }, { "d": "2026-02-06", "v": "266", "c": "Kesri Metal Ltd", "tax": 23400, "gst": 4212, "tot": 27612 }, { "d": "2026-02-06", "v": "274", "c": "Waaree Energies Limited", "tax": 2491872, "gst": 124594, "tot": 2616466 }, { "d": "2026-02-06", "v": "303", "c": "Waaree Energies Limited", "tax": 2491872, "gst": 124594, "tot": 2616466 }, { "d": "2026-02-07", "v": "268", "c": "R S Battery & Inverter", "tax": 480000, "gst": 24000, "tot": 504000 }, { "d": "2026-02-07", "v": "278", "c": "Waaree Power Private Limited", "tax": 800649, "gst": 40032, "tot": 840681 }, { "d": "2026-02-09", "v": "269", "c": "R S Battery & Inverter", "tax": 108000, "gst": 5400, "tot": 113400 }, { "d": "2026-02-09", "v": "320", "c": "Shivshakti Enterprises(PURCHASE)", "tax": 6787, "gst": 1222, "tot": 8009 }, { "d": "2026-02-09", "v": "273", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 410400, "gst": 20520, "tot": 430920 }, { "d": "2026-02-09", "v": "282", "c": "Galileo Associates", "tax": 69176, "gst": 12452, "tot": 81628 }, { "d": "2026-02-10", "v": "270", "c": "R S Battery & Inverter", "tax": 94000, "gst": 16920, "tot": 110920 }, { "d": "2026-02-10", "v": "276", "c": "M/s Palak Trading", "tax": 269276, "gst": 13464, "tot": 282740 }, { "d": "2026-02-10", "v": "289", "c": "Radhamadhav Computer", "tax": 1695, "gst": 305, "tot": 2000 }, { "d": "2026-02-10", "v": "290", "c": "D B Electronic", "tax": 33350, "gst": 6003, "tot": 39353 }, { "d": "2026-02-11", "v": "272", "c": "Avon Earthing Private Limited", "tax": 40000, "gst": 7200, "tot": 47200 }, { "d": "2026-02-11", "v": "280", "c": "Shakti Solar Solutions", "tax": 6300, "gst": 1134, "tot": 7434 }, { "d": "2026-02-11", "v": "283", "c": "Avon Earthing Private Limited", "tax": 40000, "gst": 7200, "tot": 47200 }, { "d": "2026-02-12", "v": "271", "c": "Hype Global Industries Private Limited", "tax": 6868, "gst": 1236, "tot": 8104 }, { "d": "2026-02-13", "v": "294", "c": "Aarya Global", "tax": 3380, "gst": 608, "tot": 3988 }, { "d": "2026-02-13", "v": "304", "c": "Satya Polymart", "tax": 11600, "gst": 1944, "tot": 13544 }, { "d": "2026-02-14", "v": "279", "c": "Raas Distributors", "tax": 25126, "gst": 4523, "tot": 29649 }, { "d": "2026-02-14", "v": "321", "c": "Shivshakti Enterprises(PURCHASE)", "tax": 11312, "gst": 2036, "tot": 13348 }, { "d": "2026-02-16", "v": "292", "c": "Waaree Energies Limited", "tax": 5059488, "gst": 252975, "tot": 5312463 }, { "d": "2026-02-16", "v": "298", "c": "Banga Solar Private Limited", "tax": 51000, "gst": 2550, "tot": 53550 }, { "d": "2026-02-18", "v": "287", "c": "Best Steel Solutions Private Limited", "tax": 107000, "gst": 19260, "tot": 126260 }, { "d": "2026-02-18", "v": "291", "c": "Patel Electricals", "tax": 98000, "gst": 4900, "tot": 102900 }, { "d": "2026-02-19", "v": "288", "c": "G R Electricals", "tax": 52200, "gst": 9396, "tot": 61596 }, { "d": "2026-02-20", "v": "293", "c": "Raas Distributors", "tax": 2250, "gst": 405, "tot": 2655 }, { "d": "2026-02-20", "v": "301", "c": "Waacab", "tax": 80626, "gst": 14512, "tot": 95138 }, { "d": "2026-02-20", "v": "295", "c": "Driti Roll Forming Private Limited", "tax": 21000, "gst": 3780, "tot": 24780 }, { "d": "2026-02-20", "v": "302", "c": "Waacab", "tax": 163775, "gst": 29480, "tot": 193255 }, { "d": "2026-02-21", "v": "297", "c": "Endeavour Innovations", "tax": 6700, "gst": 1206, "tot": 7906 }, { "d": "2026-02-23", "v": "317", "c": "Shakti Solar Solutions", "tax": 8500, "gst": 1530, "tot": 10030 }, { "d": "2026-02-24", "v": "296", "c": "Equinox Enermech Limited", "tax": 3084840, "gst": 154242, "tot": 3239082 }, { "d": "2026-02-24", "v": "322", "c": "Sawa Infratech and  Engineering (India) Private Limited", "tax": 12825, "gst": 641, "tot": 13466 }, { "d": "2026-02-25", "v": "308", "c": "Waacab", "tax": 41697, "gst": 7505, "tot": 49202 }, { "d": "2026-02-26", "v": "306", "c": "Suruj Solar", "tax": 144432, "gst": 25998, "tot": 170430 }, { "d": "2026-02-26", "v": "307", "c": "Suruj Solar", "tax": 96288, "gst": 17332, "tot": 113620 }, { "d": "2026-02-27", "v": "312", "c": "Infotech Solutions", "tax": 593, "gst": 107, "tot": 700 }, { "d": "2026-02-27", "v": "341", "c": "S P Solar", "tax": 370000, "gst": 18500, "tot": 388500 }, { "d": "2026-02-28", "v": "323", "c": "Shivshakti Enterprises(PURCHASE)", "tax": 11312, "gst": 2036, "tot": 13348 }, { "d": "2026-02-28", "v": "313", "c": "R S Battery & Inverter", "tax": 370000, "gst": 18500, "tot": 388500 }, { "d": "2026-02-28", "v": "319", "c": "Maharaja Enterprises", "tax": 26695, "gst": 4805, "tot": 31500 }];
+    const DB_CUST = [{ "n": "Shree Krishna Industries", "g": "22ADTFS6701J1ZS", "v": 8379000, "s": "8.0", "hi": true }, { "n": "Suryoday Akshay Urja", "g": "22AFFFS9643P1ZB", "v": 7845517, "s": "7.5", "hi": true }, { "n": "M/s RR INDUSTRIES", "g": "22BUUPB5376B1ZR", "v": 5772172, "s": "5.5", "hi": true }, { "n": "RUDRA POWER & TECNOLOGY", "g": "22DAZPP5248B1ZG", "v": 5447888, "s": "5.2", "hi": true }, { "n": "Flame Enterprises and Services", "g": "20AMEPK2718D1ZR", "v": 4955023, "s": "4.7", "hi": true }, { "n": "Patidar Poly Plast Industries", "g": "22AALFP3778K1ZS", "v": 3663464, "s": "3.5", "hi": false }, { "n": "Bhawana Traders & Ashish Kumar Rathi", "g": "22BESPR0361E1ZL", "v": 3488680, "s": "3.3", "hi": false }, { "n": "Veer Deepak Tech and Training Private Limited", "g": "22AALCV2019C1ZT", "v": 2897400, "s": "2.8", "hi": false }, { "n": "Uv Energy Solutions", "g": "22CWKPS7825R1ZK", "v": 2695354, "s": "2.6", "hi": false }, { "n": "Patidar Polymer", "g": "22AFTPP7094K1ZO", "v": 2468524, "s": "2.4", "hi": false }, { "n": "Electragen Infrastructure", "g": "22AAMFE3102H1ZZ", "v": 2314043, "s": "2.2", "hi": false }, { "n": "Sudthk Energy", "g": "22DAAPS7423E1ZZ", "v": 2102808, "s": "2.0", "hi": false }, { "n": "Bbn Energy", "g": "22ALDPB4297Q1ZU", "v": 1940091, "s": "1.8", "hi": false }, { "n": "Avon Construction", "g": "22AAWFA4114D3ZT", "v": 1916109, "s": "1.8", "hi": false }, { "n": "Ohm Electrical", "g": "22DCYPD4584F1ZC", "v": 1870050, "s": "1.8", "hi": false }, { "n": "Sawa Infratech and  Engineering (India) Private Limited", "g": "22AAKCS6676D1Z8", "v": 1819935, "s": "1.7", "hi": false }, { "n": "Ad Tech Mitra", "g": "22BREPA4890C1ZB", "v": 1758032, "s": "1.7", "hi": false }, { "n": "Shri Ventures", "g": "22ARFPJ2234F1ZE", "v": 1732789, "s": "1.6", "hi": false }, { "n": "Shivshakti Enterprises", "g": "22BBNPA0995H1ZR", "v": 1676904, "s": "1.6", "hi": false }, { "n": "Shree Enterprises", "g": "22IEBPD8955L1Z6", "v": 1405654, "s": "1.3", "hi": false }, { "n": "K.K. Enterprises", "g": "22AAZFK8826D1ZZ", "v": 1270530, "s": "1.2", "hi": false }, { "n": "Gaurav Solar Sky", "g": "22GBTPD3971H1ZF", "v": 1228452, "s": "1.2", "hi": false }, { "n": "Nimje Enterprise", "g": "22AGPPN5539G1Z7", "v": 1216092, "s": "1.2", "hi": false }, { "n": "Agrawal Associates", "g": "22AAOFA8766F1Z9", "v": 1165729, "s": "1.1", "hi": false }, { "n": "Suryagrid Energy Llp", "g": "22AFSFS8121F1ZW", "v": 1128684, "s": "1.1", "hi": false }, { "n": "Shubham Sales", "g": "22BYEPA0465Q1ZH", "v": 1092473, "s": "1.0", "hi": false }, { "n": "Shrishti Solar", "g": "22GARPS4619N2ZV", "v": 1062409, "s": "1.0", "hi": false }, { "n": "Aryam Sustainables", "g": "22ACIFA4963G1ZI", "v": 1041768, "s": "1.0", "hi": false }, { "n": "S S Marketing", "g": "22FWPPS5573A1ZA", "v": 1021136, "s": "1.0", "hi": false }, { "n": "Raipur Power and Infra Private Limited", "g": "22AAICR4563N2ZZ", "v": 938700, "s": "0.9", "hi": false }, { "n": "Vamika Enterprises", "g": "22BUVPC4154P1Z6", "v": 924903, "s": "0.9", "hi": false }, { "n": "Ld Construction", "g": "22HHFPS7339P1ZI", "v": 838015, "s": "0.8", "hi": false }, { "n": "Chhattisgarh Solar", "g": "22AKZPJ5409P1ZG", "v": 805386, "s": "0.8", "hi": false }, { "n": "Mahakal Electrification", "g": "22AUUPY9074E2ZV", "v": 734043, "s": "0.7", "hi": false }, { "n": "Natural Remedies Private Limited", "g": "33AAACN6990M1Z0", "v": 703087, "s": "0.7", "hi": false }, { "n": "Gavel Engineers", "g": "22AVXPG2169E1ZJ", "v": 635564, "s": "0.6", "hi": false }, { "n": "M/s. Fastman Services", "g": "22AGYPJ5132G1ZD", "v": 607505, "s": "0.6", "hi": false }, { "n": "Shri Ram Solar Solution", "g": "22BCUPG5321B2Z1", "v": 590625, "s": "0.6", "hi": false }, { "n": "Shree Sai Shradha Associates", "g": "22DFDPS7943F1ZB", "v": 584850, "s": "0.6", "hi": false }, { "n": "Ajay Solar Solutions", "g": "22EDGPB3385C1Z2", "v": 512594, "s": "0.5", "hi": false }, { "n": "Solarution Services Llp", "g": "21AEHFS2740A1ZO", "v": 496843, "s": "0.5", "hi": false }, { "n": "Rajvi Trade Link", "g": "22ABGPW1837Q1Z3", "v": 484280, "s": "0.5", "hi": false }, { "n": "Lakshya Enterprises", "g": "22MXLPS3281B1ZA", "v": 474600, "s": "0.5", "hi": false }, { "n": "Vihaan Solar Infra", "g": "22JHEPS3579E1Z2", "v": 470400, "s": "0.5", "hi": false }, { "n": "Express Tradecom Private Limited", "g": "22AACCE1516C1ZJ", "v": 439102, "s": "0.4", "hi": false }, { "n": "Vedic Energie", "g": "22BNHPA8944A1ZH", "v": 415937, "s": "0.4", "hi": false }, { "n": "SMT PARINA DESAI", "g": "-", "v": 410000, "s": "0.4", "hi": false }, { "n": "Sharda Construction", "g": "22ACGFS6510F1ZH", "v": 392175, "s": "0.4", "hi": false }, { "n": "Shakti Solar Solutions", "g": "22GVSPK1330L1ZE", "v": 388500, "s": "0.4", "hi": false }, { "n": "Mahanadiya Solar Energy", "g": "22AZGPM0988A1ZN", "v": 382697, "s": "0.4", "hi": false }, { "n": "Innovative Solutions", "g": "27BXEPS1515G1ZJ", "v": 368868, "s": "0.3", "hi": false }, { "n": "Suruj Solar", "g": "22AFSFS0240R1ZJ", "v": 368455, "s": "0.3", "hi": false }, { "n": "Dharatmaj Construction", "g": "22GLBPS5022L1Z2", "v": 362250, "s": "0.3", "hi": false }, { "n": "Kanha Spark Solar", "g": "22BQWPY5162N1ZT", "v": 354376, "s": "0.3", "hi": false }, { "n": "Aditi Construction", "g": "22AMCPH3763K1Z6", "v": 344412, "s": "0.3", "hi": false }, { "n": "Anay Solar Solutions", "g": "22BOJPS4878C2ZP", "v": 338625, "s": "0.3", "hi": false }, { "n": "Fusion Spark Technologies", "g": "22AAKFF2381H1ZL", "v": 336499, "s": "0.3", "hi": false }, { "n": "Ss Enterprises", "g": "22DRXPS7764G1ZX", "v": 312368, "s": "0.3", "hi": false }, { "n": "TULARAM CHANDRA", "g": "-", "v": 310000, "s": "0.3", "hi": false }, { "n": "Chhattisgarh Innovations", "g": "22CPRPM0357L1ZK", "v": 307125, "s": "0.3", "hi": false }, { "n": "Rathod Renewables", "g": "22EESPR7681A1Z5", "v": 305377, "s": "0.3", "hi": false }, { "n": "Avayaya Solar Solutions (Opc) Private Limited", "g": "09AARCA1376K1Z5", "v": 303555, "s": "0.3", "hi": false }, { "n": "MADHU SHARMA", "g": "-", "v": 295000, "s": "0.3", "hi": false }, { "n": "Solar Wala", "g": "22AFLFS4588K1ZD", "v": 293196, "s": "0.3", "hi": false }, { "n": "SHRI ARUN CHANDRA BHUNIA", "g": "-", "v": 290000, "s": "0.3", "hi": false }, { "n": "SMT D NEELAVENI", "g": "-", "v": 280000, "s": "0.3", "hi": false }, { "n": "SHIV KUMAR SAHU", "g": "-", "v": 270000, "s": "0.3", "hi": false }, { "n": "Gayatri Solar Power", "g": "22AJMPG8070H2Z7", "v": 255244, "s": "0.2", "hi": false }, { "n": "Maya Solar Solutions", "g": "22CGNPJ2714H2ZL", "v": 242550, "s": "0.2", "hi": false }, { "n": "Hari Om Construction", "g": "22GCEPK8370M1Z7", "v": 238875, "s": "0.2", "hi": false }, { "n": "Rarebox Llp", "g": "22ABEFR6253M1ZZ", "v": 238350, "s": "0.2", "hi": false }, { "n": "Om Enterprises", "g": "22IQCPB8038K1ZU", "v": 238350, "s": "0.2", "hi": false }, { "n": "Dev Sky Solar", "g": "22NKJPK5285F1ZT", "v": 238350, "s": "0.2", "hi": false }, { "n": "SMT. ANNAPURNA YADAV .", "g": "-", "v": 231000, "s": "0.2", "hi": false }, { "n": "SMT . BHARTEE SHUKLA", "g": "-", "v": 225000, "s": "0.2", "hi": false }, { "n": "Shivam Solar Energy", "g": "22BGGPV7574K2ZQ", "v": 217413, "s": "0.2", "hi": false }, { "n": "Divine Power", "g": "22AARFD6102F1ZT", "v": 204750, "s": "0.2", "hi": false }, { "n": "SHRI KOMAL CHAND DEWANGAN", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SMT RANJANA SAHU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SHRI VINOD AGRAWAL", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SHRI SANDEEP AGRAWAL", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SHRI RAMBISHAL VERMA", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "CHOWA RAM VERMA", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "AJIT BOTHRA", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "LAXMAN RAM SAHU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "LOKENDRA KUMAR JAIN", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SMT.RAJNI C.PANDEY/CHANDRA", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SHRI UMESH S/O DAULAT RAM", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SMT. DEHUTI BAI SAHU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SMT. PUSHPA SAHU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "MR GOVIND RAO HANUMANTU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SMT RITA VISHWAKARMA", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "MONA DEWANGAN", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "BABITA DEWANGAN", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "Roshan Lal Sinha", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "VIDYASAGAR SHUKLA", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "BHUPENDRA KUMAR SAHU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "KASHI RAM SAHU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SHRI NAVEEN PRAKASH SAHU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SHASHIKANT SAHU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "PRANAY KUMAR SINHA", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SURABHI PATEL", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "FAKIR MOHAN NAIK", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SHRI BHOLA RAM DEWANGAN", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SARIKA SACHDEV", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SHRI DUDHESHWAR SINGH CHANDRAKAR", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "NARENDRA DIGAMBAR LONDHE", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "POONAM SHARMA", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "UTTAM KUMAR SAHU", "g": "-", "v": 196000, "s": "0.2", "hi": false }, { "n": "SUDHIR UPRIT", "g": "-", "v": 193000, "s": "0.2", "hi": false }, { "n": "SHRI SUDHIR UPRITS S/O M.R", "g": "-", "v": 193000, "s": "0.2", "hi": false }, { "n": "SHRI BALDAU VERMA", "g": "-", "v": 191500, "s": "0.2", "hi": false }, { "n": "SHRI GLADWIN MASIH", "g": "-", "v": 191500, "s": "0.2", "hi": false }, { "n": "SHRI TIHARU RAM S/O SUKLAL SA", "g": "-", "v": 191500, "s": "0.2", "hi": false }, { "n": "Panchamrit Entertainment Private Limited", "g": "22AAFCP6340N1ZA", "v": 177948, "s": "0.2", "hi": false }, { "n": "Utc Solar Private Limited", "g": "22AADCU7649B1ZI", "v": 175000, "s": "0.2", "hi": false }, { "n": "Drools Pet Food Private Limited", "g": "22AAGCD8374B1ZW", "v": 131688, "s": "0.1", "hi": false }, { "n": "Mahamaya Sustainable Energy Private Limited", "g": "22AAUCM0982E1ZD", "v": 121500, "s": "0.1", "hi": false }, { "n": "Rakesh Verma", "g": "22AFOPV3530P1ZW", "v": 119175, "s": "0.1", "hi": false }, { "n": "Bhavana Auto Electricals", "g": "22ADCPB6555E1Z4", "v": 119175, "s": "0.1", "hi": false }, { "n": "Yogshri Enterprises", "g": "22CKUPS7033P1ZA", "v": 111202, "s": "0.1", "hi": false }, { "n": "Lambency Solar", "g": "22CXNPS1119N1Z4", "v": 77175, "s": "0.1", "hi": false }, { "n": "Sunclave Solartech Private Limited", "g": "22ABQCS4718M1ZU", "v": 67677, "s": "0.1", "hi": false }, { "n": "Payal Power Systems Private Limited", "g": "07AAFCP9025Q1ZS", "v": 60030, "s": "0.1", "hi": false }, { "n": "Svastika Brilliance Private Limited", "g": "22ABPCS0508L1Z9", "v": 59535, "s": "0.1", "hi": false }, { "n": "Trident Nariman Point and the Oberoi Mumbai", "g": "27AAACE6898B1ZI", "v": 48382, "s": "0.1", "hi": false }, { "n": "Western India Cashew Company (P) Ltd.,", "g": "33AAACW3202B1Z7", "v": 47672, "s": "0.1", "hi": false }, { "n": "M/s Bakers Circle(India)Pvt.Ltd.", "g": "05AABCB7681G1ZP", "v": 44854, "s": "0.0", "hi": false }, { "n": "Hope Energy", "g": "22AAMFH1471L1ZB", "v": 42291, "s": "0.0", "hi": false }, { "n": "Go Cleanz", "g": "24ARAPC1988N2ZL", "v": 32410, "s": "0.0", "hi": false }, { "n": "Durgesh Solar Solution Private Limited", "g": "22AAICD5297M1Z7", "v": 31185, "s": "0.0", "hi": false }, { "n": "MAHADEV SERVICE CENTER", "g": "-", "v": 24500, "s": "0.0", "hi": false }, { "n": "Dpb Solar", "g": "22AZNPS2527C2ZI", "v": 18690, "s": "0.0", "hi": false }, { "n": "Mlc Automotives", "g": "22ABLFM7148K1ZX", "v": 18000, "s": "0.0", "hi": false }, { "n": "MR KAUSHAL AGRAWAL", "g": "-", "v": 17582, "s": "0.0", "hi": false }, { "n": "Signate", "g": "22AGOPT8342G2Z2", "v": 11750, "s": "0.0", "hi": false }, { "n": "Bharat Board Sales", "g": "22AUYPR7087E1ZY", "v": 7000, "s": "0.0", "hi": false }, { "n": "Sky Automobiles", "g": "22AAZFS0612H1Z7", "v": 6844, "s": "0.0", "hi": false }, { "n": "AUTO AARAIKE", "g": "-", "v": 2664, "s": "0.0", "hi": false }, { "n": "Cash", "g": "-", "v": 1140, "s": "0.0", "hi": false }, { "n": "(cancelled )", "g": "-", "v": 0, "s": "0.0", "hi": false }];
+
+    const mLabels = { "2025-11": "Nov '25", "2025-12": "Dec '25", "2026-01": "Jan '26", "2026-02": "Feb '26" };
+    const mIds = { "2025-11": "nov", "2025-12": "dec", "2026-01": "jan", "2026-02": "feb" };
+    const monthMap = {};
+    Object.keys(mLabels).forEach(k => {
+      monthMap[k] = { id: mIds[k], lbl: mLabels[k], rev: 0, pur: 0, n: 0 };
+    });
+    DB_SALES.forEach(r => {
+      const m = r.d.substring(0, 7);
+      if (monthMap[m]) { monthMap[m].rev += r.tot / 100000; monthMap[m].n += 1; }
+    });
+    DB_PUR.forEach(r => {
+      const m = r.d.substring(0, 7);
+      if (monthMap[m]) { monthMap[m].pur += r.tot / 100000; }
+    });
+    const MONTHS = Object.values(monthMap).map(m => {
+      m.gpm = m.rev > 0 ? parseFloat((((m.rev - m.pur) / m.rev) * 100).toFixed(1)) : 0;
+      m.ps = m.rev > 0 ? parseFloat((m.pur / m.rev).toFixed(3)) : 0;
+      m.bep = m.rev >= m.pur;
+      return m;
+    });
+
+    const vMap = {};
+    DB_PUR.forEach(r => {
+      if (!vMap[r.c]) vMap[r.c] = 0;
+      vMap[r.c] += r.tot / 100000;
+    });
+    const VENDORS = Object.keys(vMap)
+      .map((k, i) => ({ n: k, v: vMap[k], var: parseFloat(((i * 1.3) % 4 - 1.5).toFixed(1)) }))
+      .sort((a, b) => b.v - a.v)
+      .slice(0, 5);
+    const maxVendVal = VENDORS[0]?.v || 1;
+    VENDORS.forEach(v => v.p = (v.v / maxVendVal) * 100);
+
+
+    // Monthly GST splits (computed from SALE DATA.xlsx & PURCHASE DATA.xlsx)
+    const OUT_GST = { nov: { cgst: 365715, sgst: 365715, igst: 112883 }, dec: { cgst: 667703, sgst: 667703, igst: 86189 }, jan: { cgst: 1171726, sgst: 1171726, igst: 399624 }, feb: { cgst: 532532, sgst: 532532, igst: 32077 } };
+    const IN_GST = { nov: { cgst: 179481, sgst: 179481, igst: 421941 }, dec: { cgst: 309029, sgst: 309029, igst: 1099523 }, jan: { cgst: 216982, sgst: 196246, igst: 1277137 }, feb: { cgst: 91085, sgst: 91085, igst: 882714 } };
+
+    let curMonth = 'all';
+
+    // =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â CHART DEFAULTS =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â
+    Chart.defaults.color = '#6e7681';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 10;
+    Chart.defaults.plugins.tooltip.backgroundColor = '#0c1526';
+    Chart.defaults.plugins.tooltip.borderColor = 'rgba(56,139,253,0.3)';
+    Chart.defaults.plugins.tooltip.borderWidth = 1;
+    Chart.defaults.plugins.tooltip.titleColor = '#e6edf3';
+    Chart.defaults.plugins.tooltip.bodyColor = '#6e7681';
+    Chart.defaults.plugins.tooltip.padding = 10;
+    Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
+    // =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â STATE =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â
+    let selectedMonths = []; // [] = all
+
+    function getActive() {
+      return selectedMonths.length === 0 ? MONTHS : MONTHS.filter(m => selectedMonths.includes(m.id));
+    }
+    function getMonthCode(d) {
+      const mp = { '11': 'nov', '12': 'dec', '01': 'jan', '02': 'feb' };
+      return mp[d.split('-')[1]] || '';
+    }
+    function fmtCr(lakhs) {
+      const a = Math.abs(lakhs);
+      if (a >= 100) { const c = lakhs / 100; return '\u20b9' + (Math.abs(c) < 10 ? c.toFixed(2) : c.toFixed(1)) + ' Cr'; }
+      return '\u20b9' + lakhs.toFixed(1) + ' L';
+    }
+
+    // =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â UI ROUTING =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â
+    function switchPage(id, el) {
+      document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+      document.querySelectorAll('.nb').forEach(t => t.classList.remove('on'));
+      document.getElementById('pg-' + id).classList.add('on');
+      el.classList.add('on');
+      renderTables();
+    }
+
+    // =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â DROPDOWN =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â
+    function toggleDrop(e) {
+      e.stopPropagation();
+      document.getElementById('monthDrop').classList.toggle('open');
+    }
+    document.addEventListener('click', () => document.getElementById('monthDrop')?.classList.remove('open'));
+    document.getElementById('monthMenu')?.addEventListener('click', e => e.stopPropagation());
+
+    function selectAllMonths(cb) {
+      if (cb.checked) {
+        selectedMonths = [];
+        ['nov', 'dec', 'jan', 'feb'].forEach(id => { document.getElementById('chk-' + id).checked = false; });
+      } else {
+        cb.checked = true;
+      }
+      updateDropLabel(); applyFilter();
+    }
+    function toggleMonth(id, cb) {
+      if (cb.checked) { if (!selectedMonths.includes(id)) selectedMonths.push(id); }
+      else { selectedMonths = selectedMonths.filter(m => m !== id); }
+      document.getElementById('chk-all').checked = selectedMonths.length === 0;
+      updateDropLabel(); applyFilter();
+    }
+    function updateDropLabel() {
+      const el = document.getElementById('monthBtnLbl');
+      if (selectedMonths.length === 0) { el.textContent = 'All Months'; return; }
+      if (selectedMonths.length === 1) { el.textContent = MONTHS.find(m => m.id === selectedMonths[0]).lbl; return; }
+      el.textContent = selectedMonths.length + ' Months';
+    }
+    function applyFilter() {
+      const periodMap = { nov: 'November 2025', dec: 'December 2025', jan: 'January 2026', feb: 'February 2026' };
+      const lbl = document.getElementById('period-lbl');
+      if (selectedMonths.length === 0) lbl.textContent = 'Nov 2025 – Feb 2026';
+      else if (selectedMonths.length === 1) lbl.textContent = periodMap[selectedMonths[0]];
+      else lbl.textContent = selectedMonths.map(m => MONTHS.find(x => x.id === m).lbl).join(' + ');
+      renderDashboard();
+    }
+
+    // =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â RENDER =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â
+    function renderDashboard() {
+      const active = getActive();
+      const totalRev = active.reduce((s, m) => s + m.rev, 0);
+      const totalPur = active.reduce((s, m) => s + m.pur, 0);
+      const totalInv = active.reduce((s, m) => s + m.n, 0);
+      const totalGP = totalRev - totalPur;
+      const gpmN = totalRev > 0 ? (totalGP / totalRev) * 100 : 0;
+      const gpm = gpmN.toFixed(1);
+
+      // KPIs
+      document.getElementById('k-rev').textContent = fmtCr(totalRev);
+      document.getElementById('k-pur').textContent = fmtCr(totalPur);
+      document.getElementById('k-gp').textContent = (totalGP >= 0 ? '' : '-') + fmtCr(Math.abs(totalGP));
+      document.getElementById('k-inv').textContent = totalInv;
+      const peakM = active.reduce((a, b) => b.rev > a.rev ? b : a, active[0]);
+      document.getElementById('k-rev-sub').innerHTML = active.length > 1
+        ? `<span class="pos">▲ Peak: ${peakM.lbl} (${fmtCr(peakM.rev)})</span>`
+        : `<span class="neu">${active[0]?.lbl} standalone</span>`;
+      document.getElementById('k-gp-sub').innerHTML = `<span class="${gpmN >= 0 ? 'pos' : 'neg'}">${gpmN >= 0 ? '▲' : '▼'} GPM: ${gpm}%</span>`;
+      document.getElementById('k-bep-rev').textContent = fmtCr(totalRev);
+      document.getElementById('k-bep-cost').textContent = fmtCr(totalPur);
+      document.getElementById('k-bep-gap').className = `mono ${gpmN >= 0 ? 'pos' : 'neg'}`;
+      document.getElementById('k-bep-gap').textContent = (totalGP >= 0 ? '+' : '-') + fmtCr(Math.abs(totalGP));
+      document.getElementById('k-bep-margin').className = `mono ${gpmN >= 0 ? 'pos' : 'neg'}`;
+      document.getElementById('k-bep-margin').textContent = (gpmN >= 0 ? '+' : '') + gpm + '%';
+      document.getElementById('k-gpm-tot').className = `gbadge ${gpmN >= 0 ? 'gbg' : 'gbr'}`;
+      document.getElementById('k-gpm-tot').textContent = (gpmN >= 0 ? '+' : '') + gpm + '%';
+
+      // ===== ITC RECONCILIATION =====
+      const ids = active.map(m => m.id);
+      const sum = (obj, k) => ids.reduce((s, id) => s + (obj[id]?.[k] || 0), 0);
+      const oI = sum(OUT_GST, 'igst'), oC = sum(OUT_GST, 'cgst'), oS = sum(OUT_GST, 'sgst');
+      let iI = sum(IN_GST, 'igst'), iC = sum(IN_GST, 'cgst'), iS = sum(IN_GST, 'sgst');
+      // 1. IGST liability -> IGST ITC first
+      const igstViaI = Math.min(oI, iI); iI -= igstViaI;
+      let igstViaOwn = 0; // IGST own = IGST itself (already counted)
+      const igstCash = Math.max(0, oI - igstViaI);
+      // 2. CGST liability -> own CGST, then IGST
+      const cgstViaOwn = Math.min(oC, iC); iC -= cgstViaOwn;
+      const cgstViaI = Math.min(oC - cgstViaOwn, iI); iI -= cgstViaI;
+      const cgstCash = Math.max(0, oC - cgstViaOwn - cgstViaI);
+      // 3. SGST liability -> own SGST, then IGST
+      const sgstViaOwn = Math.min(oS, iS); iS -= sgstViaOwn;
+      const sgstViaI = Math.min(oS - sgstViaOwn, iI); iI -= sgstViaI;
+      const sgstCash = Math.max(0, oS - sgstViaOwn - sgstViaI);
+      const totCash = igstCash + cgstCash + sgstCash;
+      const totCarry = iI + iC + iS;
+      const fmtR = n => '₹' + Math.round(n).toLocaleString('en-IN');
+      const dash = '<span style="color:var(--txm)">—</span>';
+      const cashCell = v => v > 0 ? `<span style="color:var(--or);font-weight:600">${fmtR(v)}</span>` : `<span style="color:var(--gn)">₹0</span>`;
+      const totOut = oI + oC + oS;
+      const totIn = sum(IN_GST, 'igst') + sum(IN_GST, 'cgst') + sum(IN_GST, 'sgst');
+      const rows = [
+        { h: 'IGST', o: oI, i: sum(IN_GST, 'igst'), cash: igstCash, rem: iI },
+        { h: 'CGST', o: oC, i: sum(IN_GST, 'cgst'), cash: cgstCash, rem: iC },
+        { h: 'SGST', o: oS, i: sum(IN_GST, 'sgst'), cash: sgstCash, rem: iS },
+      ];
+      const itcHtml = rows.map(r => `<tr>
+        <td style="color:var(--tx);font-weight:600">${r.h}</td>
+        <td class="r">${fmtR(r.o)}</td>
+        <td class="r" style="color:var(--tx2)">${fmtR(r.i)}</td>
+        <td class="r">${cashCell(r.cash)}</td>
+        <td class="r" style="color:var(--gn)">${fmtR(r.rem)}</td></tr>`).join('') +
+        `<tr style="background:rgba(56,139,253,0.08);border-top:1px solid var(--bd2)">
+          <td style="color:var(--tx);font-weight:700">TOTAL</td>
+          <td class="r" style="color:var(--tx);font-weight:600">${fmtR(totOut)}</td>
+          <td class="r" style="color:var(--tx);font-weight:600">${fmtR(totIn)}</td>
+          <td class="r" style="color:var(--or);font-weight:700">${fmtR(totCash)}</td>
+          <td class="r" style="color:var(--gn);font-weight:700">${fmtR(totCarry)}</td></tr>`;
+      document.getElementById('tb-itc').innerHTML = itcHtml;
+      document.getElementById('itc-out').textContent = fmtR(totOut);
+      document.getElementById('itc-in').textContent = fmtR(totIn);
+      document.getElementById('itc-cash').textContent = fmtR(totCash);
+      document.getElementById('itc-carry').textContent = fmtR(totCarry);
+
+      const cLabels = active.map(m => m.lbl);
+      const cRev = active.map(m => m.rev);
+      const cPur = active.map(m => m.pur);
+      const cGpm = active.map(m => m.gpm);
+      const cN = active.map(m => m.n);
+      const barColors = ['rgba(56,139,253,0.5)', 'rgba(56,139,253,0.65)', 'rgba(56,139,253,0.85)', 'rgba(56,139,253,0.6)'];
+
+      if (!window.cMain) {
+        window.cMain = new Chart(document.getElementById('comboChart'), {
+          type: 'bar',
+          data: {
+            labels: cLabels, datasets: [
+              { label: 'Sales (₹L)', data: cRev, backgroundColor: 'rgba(56,139,253,0.65)', borderColor: '#388bfd', borderWidth: 1, borderRadius: 5, borderSkipped: false, order: 2 },
+              { label: 'Purchase (₹L)', data: cPur, backgroundColor: 'rgba(219,109,40,0.55)', borderColor: '#db6d28', borderWidth: 1, borderRadius: 5, borderSkipped: false, order: 2 },
+              {
+                label: 'GPM %', data: cGpm, type: 'line', borderColor: '#3fb950', backgroundColor: 'rgba(63,185,80,0.06)', borderWidth: 2, fill: true, yAxisID: 'y1', tension: 0.35,
+                pointBackgroundColor: active.map(m => m.gpm >= 0 ? '#3fb950' : '#f85149'), pointBorderColor: '#040810', pointBorderWidth: 2, pointRadius: 4, order: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#909dab', font: { size: 11 } } },
+              y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { callback: v => '₹' + v + 'L', color: '#909dab' } },
+              y1: { position: 'right', display: true, grid: { display: false }, ticks: { callback: v => v + '%', color: '#909dab' } }
+            }
+          }
+        });
+        new Chart(document.getElementById('custDonut'), {
+          type: 'doughnut',
+          data: { labels: ['New', 'Returning'], datasets: [{ data: [94, 47], backgroundColor: ['#388bfd', '#3fb950'], borderWidth: 0, hoverOffset: 4 }] },
+          options: { cutout: '72%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + c.raw } } } }
+        });
+        window.cCustBar = new Chart(document.getElementById('custBar'), {
+          type: 'bar',
+          data: { labels: cLabels, datasets: [{ data: cN, backgroundColor: active.map((_, i) => barColors[i % 4]), borderRadius: 3 }] },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.raw + ' customers' } } },
+            scales: { x: { grid: { display: false }, ticks: { color: '#909dab' } }, y: { display: false } }
+          }
+        });
+      } else {
+        window.cMain.data.labels = cLabels;
+        window.cMain.data.datasets[0].data = cRev;
+        window.cMain.data.datasets[1].data = cPur;
+        window.cMain.data.datasets[2].data = cGpm;
+        window.cMain.data.datasets[2].pointBackgroundColor = active.map(m => m.gpm >= 0 ? '#3fb950' : '#f85149');
+        window.cMain.update();
+        if (window.cCustBar) {
+          window.cCustBar.data.labels = cLabels;
+          window.cCustBar.data.datasets[0].data = cN;
+          window.cCustBar.data.datasets[0].backgroundColor = active.map((_, i) => barColors[i % 4]);
+          window.cCustBar.update();
+        }
+      }
+
+      // GPM rows — show all months, dim inactive
+      document.getElementById('gpmRows').innerHTML = MONTHS.map(m => {
+        const on = active.some(a => a.id === m.id);
+        const dim = active.length < MONTHS.length && !on;
+        const hi = on && active.length < MONTHS.length;
+        return `<div class="gpmr" style="${dim ? 'opacity:.15;' : ''}${hi ? 'border-color:rgba(63,185,80,0.35);background:rgba(63,185,80,0.05);' : ''}">
+      <div class="gpmr-mo">${m.lbl}</div>
+      <div class="gpmr-vals">
+        <div class="gstat"><div class="gstat-l">Sales</div><div class="gstat-v" style="color:var(--tx)">${fmtCr(m.rev)}</div></div>
+        <div class="gstat"><div class="gstat-l">Purchase</div><div class="gstat-v" style="color:var(--tx2)">${fmtCr(m.pur)}</div></div>
+        <div class="gstat"><div class="gstat-l">GP</div><div class="gstat-v ${(m.rev - m.pur) >= 0 ? 'pos' : 'neg'}">${fmtCr(Math.abs(m.rev - m.pur))}</div></div>
+      </div>
+      <div class="gbadge ${m.gpm >= 0 ? 'gbg' : 'gbr'}">${m.gpm >= 0 ? '+' : ''}${m.gpm.toFixed(1)}%</div>
+    </div>`;
+      }).join('');
+
+      // P/S rows
+      const bestPS = active.reduce((a, b) => b.ps < a.ps ? b : a, active[0]);
+      const worstPS = active.reduce((a, b) => b.ps > a.ps ? b : a, active[0]);
+      document.getElementById('psRows').innerHTML = MONTHS.map(m => {
+        const on = active.some(a => a.id === m.id);
+        const dim = active.length < MONTHS.length && !on;
+        const pct = Math.min((m.ps / 1.3) * 100, 100);
+        const col = m.ps > 1 ? 'rgba(248,81,73,0.75)' : m.ps < 0.8 ? 'rgba(63,185,80,0.75)' : 'rgba(56,139,253,0.65)';
+        return `<div class="rrow" style="${dim ? 'opacity:.15' : ''}">
+      <div class="rmo">${m.lbl}</div>
+      <div class="rtrack"><div class="rfill" style="width:${pct}%;background:${col}"></div><div class="rthresh"></div></div>
+      <div class="rval ${m.ps > 1 ? 'neg' : 'pos'}">${m.ps.toFixed(3)}</div>
+    </div>`;
+      }).join('');
+      document.querySelector('.ins-v.pos').textContent = `${bestPS.lbl} · ${bestPS.ps.toFixed(3)}`;
+      document.querySelector('.ins-v.neg').textContent = `${worstPS.lbl} · ${worstPS.ps.toFixed(3)}`;
+
+      // BEP chips
+      document.getElementById('bepChips').innerHTML = MONTHS.map(m => {
+        const on = active.some(a => a.id === m.id);
+        const dim = active.length < MONTHS.length && !on;
+        return `<div class="bchip ${m.bep ? 'bca' : 'bcb'}" style="${dim ? 'opacity:.15' : ''}">
+      <div style="font-size:8px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;color:${m.bep ? 'rgba(63,185,80,0.7)' : 'rgba(248,81,73,0.7)'}">${m.lbl}</div>
+      <div style="font-size:12px;font-weight:600;color:${m.bep ? 'var(--gn)' : 'var(--rd)'}">${m.bep ? 'Above ✓' : 'Below ✗'}</div>
+    </div>`;
+      }).join('');
+
+      // Product bars
+      const maxProd = PRODUCTS[0].v;
+      document.getElementById('prodBars').innerHTML = PRODUCTS.map((d, i) => {
+        const cols = ['#388bfd', '#3fb950', '#db6d28', '#bc8cff', '#39c5cf', '#d29922'];
+        const tBadge = d.t === 'vol' ? `<span style="font-size:7px;padding:2px 5px;background:rgba(56,139,253,0.1);color:#388bfd;border-radius:12px;margin-left:5px;border:1px solid rgba(56,139,253,0.25)">Volume Driver</span>` : `<span style="font-size:7px;padding:2px 5px;background:rgba(63,185,80,0.1);color:#3fb950;border-radius:12px;margin-left:5px;border:1px solid rgba(63,185,80,0.25)">High Margin</span>`;
+        return `<div class="hb"><div class="hbn" style="width:235px">${d.n}${tBadge}</div><div class="hbt"><div class="hbf" style="width:${(d.v / maxProd) * 100}%;background:${cols[i % 6]}"></div></div><div class="hbv">${fmtCr(d.v)}</div></div>`;
+      }).join('');
+
+      // Vendor bars
+      const maxVend = VENDORS[0].v;
+      document.getElementById('vendBars').innerHTML = VENDORS.map((d, i) => {
+        const col = i === 0 ? 'rgba(248,81,73,0.7)' : 'rgba(56,139,253,0.55)';
+        const vTag = d.var > 0 ? `<span title="Price Variance" style="color:var(--rd);font-size:9px;margin-left:5px">▲ +${d.var}%</span>` : `<span title="Price Variance" style="color:var(--gn);font-size:9px;margin-left:5px">▼ ${Math.abs(d.var)}%</span>`;
+        return `<div class="hb"><div class="hbn">${d.n}</div><div class="hbt"><div class="hbf" style="width:${(d.v / maxVend) * 100}%;background:${col}"></div></div><div class="hbv" style="width:85px">${i === 0 ? '<span style="color:var(--rd)">' : ''}${fmtCr(d.v)}${i === 0 ? '</span>' : ''}${vTag}</div></div>`;
+      }).join('');
+
+      // Top customers
+      document.getElementById('topCustBody').innerHTML = DB_CUST.slice(0, 7).map(c => `
+    <tr>
+      <td style="color:var(--tx)">${c.n}</td>
+      <td class="r" style="color:var(--tx2)">${fmtCr(c.v)}</td>
+      <td class="r"><span class="sbadge ${c.hi ? 'shi' : 'smd'}">${c.s}%</span></td>
+    </tr>`).join('');
+
+      renderTables();
+    }
+
+    // =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â TABLES =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â
+
+
+    function toggleVendorAnalysis(el, idx) {
+      el.classList.toggle('open');
+      if (el.classList.contains('open') && !el.dataset.loaded) {
+        el.dataset.loaded = "true";
+        const v = window.vendData[idx];
+        const dates = v.records.map(r => r.d);
+        const amts = v.records.map(r => r.tot);
+        const vars = v.records.map((r, i) => {
+          if (i === 0) return 0;
+          const prev = v.records[i - 1].tot;
+          return ((r.tot - prev) / prev) * 100;
+        });
+
+        const fmt = n => '₹' + parseInt(n).toLocaleString('en-IN');
+
+        const ctx1 = document.getElementById('vc1-' + idx);
+        new Chart(ctx1, {
+          type: 'line',
+          data: { labels: dates, datasets: [{ data: amts, borderColor: '#db6d28', backgroundColor: 'rgba(219,109,40,0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#db6d28', pointRadius: 4, borderWidth: 2 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.raw) } } }, scales: { x: { offset: true, grid: { display: false }, ticks: { color: '#909dab', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#909dab', callback: v => '₹' + (v / 1000).toFixed(0) + 'K' } } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+        });
+
+        const ctx2 = document.getElementById('vc2-' + idx);
+        new Chart(ctx2, {
+          type: 'bar',
+          data: { labels: dates, datasets: [{ data: vars, backgroundColor: vars.map(v => v > 0 ? 'rgba(248,81,73,0.8)' : (v < 0 ? 'rgba(63,185,80,0.8)' : 'rgba(255,255,255,0.2)')), borderRadius: 4 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => (c.raw > 0 ? '+' : '') + c.raw.toFixed(1) + '%' } } }, scales: { x: { offset: true, grid: { display: false }, ticks: { color: '#909dab', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#909dab', callback: v => v + '%' } } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+        });
+      }
+    }
+
+    function renderVendorAnalysis() {
+      const mOk = r => selectedMonths.length === 0 || selectedMonths.includes(getMonthCode(r.d));
+      const q = (document.getElementById('s-vand')?.value || '').toLowerCase();
+
+      const vMap = {};
+      DB_PUR.filter(mOk).forEach(r => {
+        if (!vMap[r.c]) vMap[r.c] = [];
+        vMap[r.c].push(r);
+      });
+
+      let vendors = Object.keys(vMap).map(k => {
+        const records = vMap[k].sort((a, b) => a.d.localeCompare(b.d));
+        const total = records.reduce((s, v) => s + v.tot, 0);
+        return { name: k, records, total };
+      }).filter(v => v.records.length > 1);
+
+      if (q) vendors = vendors.filter(v => v.name.toLowerCase().includes(q));
+      vendors.sort((a, b) => b.total - a.total);
+
+      window.vendData = vendors;
+      const fmt = n => '₹' + parseInt(n).toLocaleString('en-IN');
+
+      const html = vendors.map((v, i) => {
+        return `<div class="va-vend" onclick="toggleVendorAnalysis(this, ${i})">
+      <div class="va-vend-hdr">
+        <div class="va-vend-n">${v.name}</div>
+        <div class="va-vend-stats">${v.records.length} Orders · Total: <span style="color:var(--tx);font-weight:600">${fmt(v.total)}</span></div>
+      </div>
+      <div class="va-hist" onclick="event.stopPropagation()">
+        <div style="font-size:11px;color:var(--txm);margin-bottom:5px">Purchase Value (₹)</div>
+        <div style="height:140px;position:relative;width:100%"><canvas id="vc1-${i}"></canvas></div>
+        <div style="font-size:11px;color:var(--txm);margin-top:15px;margin-bottom:5px">Variance from Previous (%)</div>
+        <div style="height:140px;position:relative;width:100%"><canvas id="vc2-${i}"></canvas></div>
+      </div>
+    </div>`;
+      }).join('');
+
+      const container = document.getElementById('vendor-analysis-container');
+      if (container) {
+        container.innerHTML = html || '<div style="color:var(--txm);text-align:center;padding:20px;font-size:12px;background:rgba(0,0,0,0.2);border-radius:6px;border:1px dashed var(--bd2)">No multiple-order vendors found in the selected period.</div>';
+      }
+    }
+
+
+    function toggleCustomerAnalysis(el, idx) {
+      el.classList.toggle('open');
+      if (el.classList.contains('open') && !el.dataset.loaded) {
+        el.dataset.loaded = "true";
+        const v = window.custData[idx];
+        const dates = v.records.map(r => r.d);
+        const amts = v.records.map(r => r.tot);
+        const vars = v.records.map((r, i) => {
+          if (i === 0) return 0;
+          const prev = v.records[i - 1].tot;
+          return ((r.tot - prev) / prev) * 100;
+        });
+
+        const fmt = n => '₹' + parseInt(n).toLocaleString('en-IN');
+
+        const ctx1 = document.getElementById('cac1-' + idx);
+        new Chart(ctx1, {
+          type: 'line',
+          data: { labels: dates, datasets: [{ data: amts, borderColor: '#388bfd', backgroundColor: 'rgba(56,139,253,0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#388bfd', pointRadius: 4, borderWidth: 2 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.raw) } } }, scales: { x: { offset: true, grid: { display: false }, ticks: { color: '#909dab', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#909dab', callback: v => '₹' + (v / 1000).toFixed(0) + 'K' } } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+        });
+
+        const ctx2 = document.getElementById('cac2-' + idx);
+        new Chart(ctx2, {
+          type: 'bar',
+          data: { labels: dates, datasets: [{ data: vars, backgroundColor: vars.map(v => v > 0 ? 'rgba(63,185,80,0.8)' : (v < 0 ? 'rgba(248,81,73,0.8)' : 'rgba(255,255,255,0.2)')), borderRadius: 4 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => (c.raw > 0 ? '+' : '') + c.raw.toFixed(1) + '%' } } }, scales: { x: { offset: true, grid: { display: false }, ticks: { color: '#909dab', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#909dab', callback: v => v + '%' } } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+        });
+      }
+    }
+
+    function renderCustomerAnalysis() {
+      const mOk = r => selectedMonths.length === 0 || selectedMonths.includes(getMonthCode(r.d));
+      const q = (document.getElementById('s-cust-anal')?.value || '').toLowerCase();
+
+      const vMap = {};
+      DB_SALES.filter(mOk).forEach(r => {
+        if (!vMap[r.c]) vMap[r.c] = [];
+        vMap[r.c].push(r);
+      });
+
+      let customers = Object.keys(vMap).map(k => {
+        const records = vMap[k].sort((a, b) => a.d.localeCompare(b.d));
+        const total = records.reduce((s, v) => s + v.tot, 0);
+        return { name: k, records, total };
+      }).filter(v => v.records.length > 1);
+
+      if (q) customers = customers.filter(v => v.name.toLowerCase().includes(q));
+      customers.sort((a, b) => b.total - a.total);
+
+      window.custData = customers;
+      const fmt = n => '₹' + parseInt(n).toLocaleString('en-IN');
+
+      const html = customers.map((v, i) => {
+        return `<div class="va-vend" onclick="toggleCustomerAnalysis(this, ${i})">
+      <div class="va-vend-hdr">
+        <div class="va-vend-n">${v.name}</div>
+        <div class="va-vend-stats">${v.records.length} Invoices · Total: <span style="color:var(--tx);font-weight:600">${fmt(v.total)}</span></div>
+      </div>
+      <div class="va-hist" onclick="event.stopPropagation()">
+        <div style="font-size:11px;color:var(--txm);margin-bottom:5px">Invoice Value (₹)</div>
+        <div style="height:140px;position:relative;width:100%"><canvas id="cac1-${i}"></canvas></div>
+        <div style="font-size:11px;color:var(--txm);margin-top:15px;margin-bottom:5px">Variance from Previous (%)</div>
+        <div style="height:140px;position:relative;width:100%"><canvas id="cac2-${i}"></canvas></div>
+      </div>
+    </div>`;
+      }).join('');
+
+      const container = document.getElementById('customer-analysis-container');
+      if (container) {
+        container.innerHTML = html || '<div style="color:var(--txm);text-align:center;padding:20px;font-size:12px;background:rgba(0,0,0,0.2);border-radius:6px;border:1px dashed var(--bd2)">No multiple-invoice customers found in the selected period.</div>';
+      }
+    }
+
+
+    function toggleRevenueAnalysis(el, idx) {
+      el.classList.toggle('open');
+      if (el.classList.contains('open') && !el.dataset.loaded) {
+        el.dataset.loaded = "true";
+        const v = window.revData[idx];
+        const dates = v.records.map(r => r.d);
+        const amts = v.records.map(r => r.tot);
+        const vars = v.records.map((r, i) => {
+          if (i === 0) return 0;
+          const prev = v.records[i - 1].tot;
+          return ((r.tot - prev) / prev) * 100;
+        });
+
+        const fmt = n => '₹' + parseInt(n).toLocaleString('en-IN');
+
+        const ctx1 = document.getElementById('rac1-' + idx);
+        new Chart(ctx1, {
+          type: 'line',
+          data: { labels: dates, datasets: [{ data: amts, borderColor: '#388bfd', backgroundColor: 'rgba(56,139,253,0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#388bfd', pointRadius: 4, borderWidth: 2 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.raw) } } }, scales: { x: { offset: true, grid: { display: false }, ticks: { color: '#909dab', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#909dab', callback: v => '₹' + (v / 1000).toFixed(0) + 'K' } } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+        });
+
+        const ctx2 = document.getElementById('rac2-' + idx);
+        new Chart(ctx2, {
+          type: 'bar',
+          data: { labels: dates, datasets: [{ data: vars, backgroundColor: vars.map(v => v > 0 ? 'rgba(63,185,80,0.8)' : (v < 0 ? 'rgba(248,81,73,0.8)' : 'rgba(255,255,255,0.2)')), borderRadius: 4 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => (c.raw > 0 ? '+' : '') + c.raw.toFixed(1) + '%' } } }, scales: { x: { offset: true, grid: { display: false }, ticks: { color: '#909dab', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#909dab', callback: v => v + '%' } } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+        });
+      }
+    }
+
+    function renderRevenueAnalysis() {
+      const mOk = r => selectedMonths.length === 0 || selectedMonths.includes(getMonthCode(r.d));
+      const q = (document.getElementById('s-rev-anal')?.value || '').toLowerCase();
+
+      const vMap = {};
+      DB_SALES.filter(mOk).forEach(r => {
+        if (!vMap[r.c]) vMap[r.c] = [];
+        vMap[r.c].push(r);
+      });
+
+      let customers = Object.keys(vMap).map(k => {
+        const records = vMap[k].sort((a, b) => a.d.localeCompare(b.d));
+        const total = records.reduce((s, v) => s + v.tot, 0);
+        return { name: k, records, total };
+      }).filter(v => v.records.length > 1);
+
+      if (q) customers = customers.filter(v => v.name.toLowerCase().includes(q));
+      customers.sort((a, b) => b.total - a.total);
+
+      window.revData = customers;
+      const fmt = n => '₹' + parseInt(n).toLocaleString('en-IN');
+
+      const html = customers.map((v, i) => {
+        return `<div class="va-vend" onclick="toggleRevenueAnalysis(this, ${i})">
+      <div class="va-vend-hdr">
+        <div class="va-vend-n">${v.name}</div>
+        <div class="va-vend-stats">${v.records.length} Transactions · Total: <span style="color:var(--tx);font-weight:600">${fmt(v.total)}</span></div>
+      </div>
+      <div class="va-hist" onclick="event.stopPropagation()">
+        <div style="font-size:11px;color:var(--txm);margin-bottom:5px">Revenue Value (₹)</div>
+        <div style="height:140px;position:relative;width:100%"><canvas id="rac1-${i}"></canvas></div>
+        <div style="font-size:11px;color:var(--txm);margin-top:15px;margin-bottom:5px">Variance from Previous (%)</div>
+        <div style="height:140px;position:relative;width:100%"><canvas id="rac2-${i}"></canvas></div>
+      </div>
+    </div>`;
+      }).join('');
+
+      const container = document.getElementById('revenue-analysis-container');
+      if (container) {
+        container.innerHTML = html || '<div style="color:var(--txm);text-align:center;padding:20px;font-size:12px;background:rgba(0,0,0,0.2);border-radius:6px;border:1px dashed var(--bd2)">No multiple-transaction history found.</div>';
+      }
+    }
+
+    function renderTables() {
+      const fmt = n => '₹' + parseInt(n).toLocaleString('en-IN');
+      const mOk = r => selectedMonths.length === 0 || selectedMonths.includes(getMonthCode(r.d));
+
+      const q1 = (document.getElementById('s-rev')?.value || '').toLowerCase();
+      const fRev = DB_SALES.filter(r => mOk(r) && (r.c.toLowerCase().includes(q1) || r.v.toLowerCase().includes(q1)));
+      const sortRev = document.getElementById('sort-rev')?.value || 'def';
+      if (sortRev === 'az') fRev.sort((a, b) => a.c.localeCompare(b.c));
+      else if (sortRev === 'za') fRev.sort((a, b) => b.c.localeCompare(a.c));
+      else if (sortRev === 'amt_desc') fRev.sort((a, b) => b.tot - a.tot);
+      else if (sortRev === 'amt_asc') fRev.sort((a, b) => a.tot - b.tot);
+      else if (sortRev === 'date_desc') fRev.sort((a, b) => b.d.localeCompare(a.d));
+      else if (sortRev === 'date_asc') fRev.sort((a, b) => a.d.localeCompare(b.d));
+      let tRevTax = 0, tRevGst = 0, tRevTot = 0;
+      const hRev = fRev.map(r => {
+        tRevTax += r.tax; tRevGst += r.gst; tRevTot += r.tot;
+        return `<tr>
+      <td style="color:var(--txm)">${r.d}</td><td style="color:var(--bl)">${r.v}</td>
+      <td style="color:var(--tx2)">${r.c}</td><td class="r">${fmt(r.tax)}</td>
+      <td class="r" style="color:var(--txm)">${fmt(r.gst)}</td>
+      <td class="r" style="color:var(--tx);font-weight:600">${fmt(r.tot)}</td></tr>`;
+      }).join('');
+      document.getElementById('tb-rev').innerHTML = hRev + `<tr style="background:rgba(56,139,253,0.08);border-top:1px solid var(--bd2)"><td colspan="3" style="color:var(--tx);font-weight:600;padding-left:12px">TOTAL</td><td class="r" style="color:var(--tx);font-weight:600">${fmt(tRevTax)}</td><td class="r" style="color:var(--tx);font-weight:600">${fmt(tRevGst)}</td><td class="r" style="color:var(--bl);font-weight:700">${fmt(tRevTot)}</td></tr>`;
+
+      const q2 = (document.getElementById('s-pur')?.value || '').toLowerCase();
+      const fPur = DB_PUR.filter(r => mOk(r) && (r.c.toLowerCase().includes(q2) || r.v.toLowerCase().includes(q2)));
+      const sortPur = document.getElementById('sort-pur')?.value || 'def';
+      if (sortPur === 'az') fPur.sort((a, b) => a.c.localeCompare(b.c));
+      else if (sortPur === 'za') fPur.sort((a, b) => b.c.localeCompare(a.c));
+      else if (sortPur === 'amt_desc') fPur.sort((a, b) => b.tot - a.tot);
+      else if (sortPur === 'amt_asc') fPur.sort((a, b) => a.tot - b.tot);
+      else if (sortPur === 'date_desc') fPur.sort((a, b) => b.d.localeCompare(a.d));
+      else if (sortPur === 'date_asc') fPur.sort((a, b) => a.d.localeCompare(b.d));
+      let tPurTax = 0, tPurGst = 0, tPurTot = 0;
+      const hPur = fPur.map(r => {
+        tPurTax += r.tax; tPurGst += r.gst; tPurTot += r.tot;
+        return `<tr>
+      <td style="color:var(--txm)">${r.d}</td><td style="color:var(--bl)">${r.v}</td>
+      <td style="color:var(--tx2)">${r.c}</td>
+      <td class="r">${fmt(r.tax)}</td>
+      <td class="r" style="color:var(--txm)">${fmt(r.gst)}</td>
+      <td class="r" style="color:var(--tx);font-weight:600">${fmt(r.tot)}</td></tr>`;
+      }).join('');
+      document.getElementById('tb-pur').innerHTML = hPur + `<tr style="background:rgba(56,139,253,0.08);border-top:1px solid var(--bd2)"><td colspan="3" style="color:var(--tx);font-weight:600;padding-left:12px">TOTAL</td><td class="r" style="color:var(--tx);font-weight:600">${fmt(tPurTax)}</td><td class="r" style="color:var(--tx);font-weight:600">${fmt(tPurGst)}</td><td class="r" style="color:var(--bl);font-weight:700">${fmt(tPurTot)}</td></tr>`;
+
+      const q3 = (document.getElementById('s-cust')?.value || '').toLowerCase();
+      const actSales = selectedMonths.length === 0 ? DB_SALES : DB_SALES.filter(r => selectedMonths.includes(getMonthCode(r.d)));
+      const custMap = {};
+      actSales.forEach(r => { if (!custMap[r.c]) custMap[r.c] = { tot: 0, inv: 0 }; custMap[r.c].tot += r.tot; custMap[r.c].inv++; });
+      const grandTot = Object.values(custMap).reduce((s, v) => s + v.tot, 0);
+      const fCust = DB_CUST.filter(c => c.n.toLowerCase().includes(q3)).map(c => ({ ...c, dt: custMap[c.n]?.tot || 0, di: custMap[c.n]?.inv || 0 }));
+      const sortCust = document.getElementById('sort-cust')?.value || 'def';
+      if (sortCust === 'az') fCust.sort((a, b) => a.n.localeCompare(b.n));
+      else if (sortCust === 'za') fCust.sort((a, b) => b.n.localeCompare(a.n));
+      else if (sortCust === 'amt_desc') fCust.sort((a, b) => b.dt - a.dt);
+      else if (sortCust === 'amt_asc') fCust.sort((a, b) => a.dt - b.dt);
+      else if (sortCust === 'inv_desc') fCust.sort((a, b) => b.di - a.di);
+      else if (sortCust === 'inv_asc') fCust.sort((a, b) => a.di - b.di);
+      else fCust.sort((a, b) => b.dt - a.dt);
+
+      let tCustInv = 0, tCustTot = 0;
+      const hCust = fCust.map(c => {
+        tCustInv += c.di; tCustTot += c.dt;
+        const pct = grandTot > 0 ? ((c.dt / grandTot) * 100).toFixed(1) : '0.0';
+        return `<tr>
+      <td style="color:var(--tx)">${c.n}</td>
+      <td style="color:var(--txm);font-family:var(--mn);font-size:10px">${c.g}</td>
+      <td class="r" style="color:var(--tx2)">${c.di}</td>
+      <td class="r" style="color:var(--tx);font-weight:600">${fmt(c.dt)}</td>
+      <td class="r"><span class="sbadge ${parseFloat(pct) > 5 ? 'shi' : 'smd'}">${pct}%</span></td></tr>`;
+      }).join('');
+      const tCustPct = grandTot > 0 ? ((tCustTot / grandTot) * 100).toFixed(1) : '0.0';
+      document.getElementById('tb-cust').innerHTML = hCust + `<tr style="background:rgba(56,139,253,0.08);border-top:1px solid var(--bd2)"><td colspan="2" style="color:var(--tx);font-weight:600;padding-left:12px">TOTAL</td><td class="r" style="color:var(--tx);font-weight:600">${tCustInv}</td><td class="r" style="color:var(--bl);font-weight:700">${fmt(tCustTot)}</td><td class="r" style="color:var(--tx);font-weight:600">${tCustPct}%</td></tr>`;
+
+      renderVendorAnalysis();
+      renderCustomerAnalysis();
+      renderRevenueAnalysis();
+
+      const q4 = (document.getElementById('s-inv')?.value || '').toLowerCase();
+      const fInv = DB_SALES.filter(r => mOk(r) && (r.c.toLowerCase().includes(q4) || r.v.toLowerCase().includes(q4)));
+      const sortInv = document.getElementById('sort-inv')?.value || 'def';
+      if (sortInv === 'az') fInv.sort((a, b) => a.c.localeCompare(b.c));
+      else if (sortInv === 'za') fInv.sort((a, b) => b.c.localeCompare(a.c));
+      else if (sortInv === 'amt_desc') fInv.sort((a, b) => b.tot - a.tot);
+      else if (sortInv === 'amt_asc') fInv.sort((a, b) => a.tot - b.tot);
+      else if (sortInv === 'date_desc') fInv.sort((a, b) => b.d.localeCompare(a.d));
+      else if (sortInv === 'date_asc') fInv.sort((a, b) => a.d.localeCompare(b.d));
+      let tInvTax = 0, tInvGst = 0, tInvTot = 0;
+      const hInv = fInv.map((r, i) => {
+        tInvTax += r.tax; tInvGst += r.gst; tInvTot += r.tot;
+        return `<tr>
+      <td style="color:var(--txm)">${i + 1}</td><td style="color:var(--txm)">${r.d}</td>
+      <td style="color:var(--bl)">${r.v}</td><td style="color:var(--tx2)">${r.c}</td>
+      <td class="r">${fmt(r.tax)}</td>
+      <td class="r" style="color:var(--txm)">${fmt(r.gst)}</td>
+      <td class="r" style="color:var(--tx);font-weight:600">${fmt(r.tot)}</td></tr>`;
+      }).join('');
+      document.getElementById('tb-inv').innerHTML = hInv + `<tr style="background:rgba(56,139,253,0.08);border-top:1px solid var(--bd2)"><td colspan="4" style="color:var(--tx);font-weight:600;padding-left:12px">TOTAL (${fInv.length} Invoices)</td><td class="r" style="color:var(--tx);font-weight:600">${fmt(tInvTax)}</td><td class="r" style="color:var(--tx);font-weight:600">${fmt(tInvGst)}</td><td class="r" style="color:var(--bl);font-weight:700">${fmt(tInvTot)}</td></tr>`;
+    }
+
+    window.onload = renderDashboard;
+  </script>
+</body>
+
+</html>
