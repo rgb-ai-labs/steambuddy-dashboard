@@ -1433,6 +1433,15 @@
         width: 100%;
       }
     }
+
+    /* Anti-flash: the markup below still contains placeholder numbers left
+       over from whenever this file was last hand-edited. Hide the whole
+       page until the script at the bottom has replaced them with the real,
+       computed figures — this guarantees the placeholders are never
+       actually painted, regardless of parse/network timing. */
+    body:not(.data-ready) {
+      visibility: hidden;
+    }
   </style>
 </head>
 
@@ -2660,6 +2669,7 @@
     // finish) was the cause of a visible flash of stale placeholder numbers
     // before the real data rendered in.
     renderMonthCheckboxes(); applyFilter();
+    document.body.classList.add('data-ready');
   </script>
 </body>
 
