@@ -2653,7 +2653,13 @@
       document.getElementById('tb-inv').innerHTML = hInv + `<tr style="background:rgba(56,139,253,0.08);border-top:1px solid var(--bd2)"><td colspan="4" style="color:var(--tx);font-weight:600;padding-left:12px">TOTAL (${fInv.length} Invoices)</td><td class="r" style="color:var(--tx);font-weight:600">${fmt(tInvTax)}</td><td class="r" style="color:var(--tx);font-weight:600">${fmt(tInvGst)}</td><td class="r" style="color:var(--bl);font-weight:700">${fmt(tInvTot)}</td></tr>`;
     }
 
-    window.onload = () => { renderMonthCheckboxes(); applyFilter(); };
+    // Run immediately rather than on window.onload — this script tag sits at
+    // the end of <body> and Chart.js loads synchronously in <head>, so the
+    // DOM and Chart.js are already ready by the time we get here. Waiting for
+    // the `load` event (which only fires after ALL resources — fonts, etc. —
+    // finish) was the cause of a visible flash of stale placeholder numbers
+    // before the real data rendered in.
+    renderMonthCheckboxes(); applyFilter();
   </script>
 </body>
 
