@@ -437,6 +437,15 @@
       background: linear-gradient(90deg, var(--rd), transparent)
     }
 
+    /* Shown instead of hiding a card outright when a selected period has no
+       data for it — keeps layout stable across month changes and signals
+       "not available right now" rather than "broken" or "gone". */
+    .contrib-disabled {
+      opacity: .38;
+      filter: grayscale(1);
+      pointer-events: none;
+    }
+
     .kpi::after {
       content: '';
       position: absolute;
@@ -1636,19 +1645,16 @@
       <div class="ct">
         <div class="ctitle">Revenue Contribution — By Category</div>
       </div>
-      <div id="contribWrap" style="display:flex;align-items:center;gap:36px;padding:20px 24px 26px">
+      <div id="contribWrap" style="display:flex;align-items:center;gap:36px;padding:20px 24px 26px;transition:opacity .2s ease">
         <div style="position:relative;width:200px;height:200px;flex-shrink:0">
           <canvas id="contribDonut" width="200" height="200"></canvas>
           <div
             style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
             <div id="contribCenterVal" style="font-size:22px;font-weight:600;color:var(--tx);font-family:var(--mn)">₹0</div>
-            <div style="font-size:9px;color:var(--txm);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">total revenue</div>
+            <div id="contribCenterLbl" style="font-size:9px;color:var(--txm);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">total revenue</div>
           </div>
         </div>
         <div id="contribBars" style="flex:1;min-width:0"></div>
-      </div>
-      <div id="contribEmpty" style="display:none;padding:14px 18px 18px;color:var(--txm);font-size:12px;text-align:center;background:rgba(0,0,0,0.2);border-radius:6px;margin:0 18px 18px;border:1px dashed var(--bd2)">
-        No "Contributed By" category data for the selected period yet.
       </div>
     </div>
 
@@ -2343,13 +2349,28 @@
       const contribLabels = Object.keys(contribMap).sort((a, b) => contribMap[b] - contribMap[a]);
       const contribPalette = ['#388bfd', '#3fb950', '#bc8cff', '#db6d28', '#f85149', '#58a6ff', '#d29922', '#39c5cf'];
       const contribWrapEl = document.getElementById('contribWrap');
-      const contribEmptyEl = document.getElementById('contribEmpty');
-      if (contribLabels.length === 0) {
-        contribWrapEl.style.display = 'none';
-        contribEmptyEl.style.display = 'block';
+      const contribCenterLblEl = document.getElementById('contribCenterLbl');
+      const contribHasData = contribLabels.length > 0;
+      // Always keep the same layout visible — grey it out instead of hiding
+      // it, so switching months doesn't make the card vanish/reappear.
+      contribWrapEl.classList.toggle('contrib-disabled', !contribHasData);
+      contribWrapEl.style.display = 'flex';
+
+      if (!contribHasData) {
+        document.getElementById('contribCenterVal').textContent = '—';
+        contribCenterLblEl.textContent = 'no data';
+        if (window.cContrib) window.cContrib.destroy();
+        window.cContrib = new Chart(document.getElementById('contribDonut'), {
+          type: 'doughnut',
+          data: { labels: ['No data'], datasets: [{ data: [1], backgroundColor: ['#3a4453'], borderWidth: 0, hoverOffset: 0 }] },
+          options: { cutout: '66%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+        });
+        document.getElementById('contribBars').innerHTML =
+          `<div style="color:var(--txm);font-size:12px;text-align:center;padding:8px 0">
+            No "Contributed By" category data for the selected period.
+          </div>`;
       } else {
-        contribWrapEl.style.display = 'flex';
-        contribEmptyEl.style.display = 'none';
+        contribCenterLblEl.textContent = 'total revenue';
         const contribData = contribLabels.map(l => contribMap[l]);
         const contribColors = contribLabels.map((_, i) => contribPalette[i % contribPalette.length]);
         const contribTotal = contribData.reduce((s, v) => s + v, 0);
