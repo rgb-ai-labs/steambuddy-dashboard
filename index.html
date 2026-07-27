@@ -1632,6 +1632,26 @@
       </div>
     </div>
 
+    <div class="card" style="margin-top:20px;">
+      <div class="ct">
+        <div class="ctitle">Revenue Contribution — By Category</div>
+      </div>
+      <div id="contribWrap" class="dw" style="padding:14px 18px 18px">
+        <div style="position:relative;width:120px;height:120px;flex-shrink:0">
+          <canvas id="contribDonut" width="120" height="120"></canvas>
+          <div
+            style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+            <div id="contribCenterVal" style="font-size:14px;font-weight:600;color:var(--tx);font-family:var(--mn)">₹0</div>
+            <div style="font-size:8px;color:var(--txm);text-transform:uppercase;letter-spacing:.06em">total</div>
+          </div>
+        </div>
+        <div class="dl" id="contribLegend"></div>
+      </div>
+      <div id="contribEmpty" style="display:none;padding:14px 18px 18px;color:var(--txm);font-size:12px;text-align:center;background:rgba(0,0,0,0.2);border-radius:6px;margin:0 18px 18px;border:1px dashed var(--bd2)">
+        No "Contributed By" category data for the selected period yet.
+      </div>
+    </div>
+
     <div class="sh">Core Financials &amp; Revenue Drivers</div>
     <div class="g3">
       <!-- Break-Even Analysis -->
@@ -2310,6 +2330,46 @@
           window.cCustBar.data.datasets[0].backgroundColor = active.map((_, i) => barColors[i % 4]);
           window.cCustBar.update();
         }
+      }
+
+      // ===== REVENUE CONTRIBUTION BY CATEGORY (dynamic — categories not hardcoded) =====
+      const contribActiveIds = new Set(active.map(m => m.id));
+      const contribMap = {};
+      DB_SALES.forEach(r => {
+        if (!contribActiveIds.has(getMonthCode(r.d))) return;
+        if (!r.cb) return; // no category on this row (months before this field existed)
+        contribMap[r.cb] = (contribMap[r.cb] || 0) + r.tot;
+      });
+      const contribLabels = Object.keys(contribMap).sort((a, b) => contribMap[b] - contribMap[a]);
+      const contribPalette = ['#388bfd', '#3fb950', '#bc8cff', '#db6d28', '#f85149', '#58a6ff', '#d29922', '#39c5cf'];
+      const contribWrapEl = document.getElementById('contribWrap');
+      const contribEmptyEl = document.getElementById('contribEmpty');
+      if (contribLabels.length === 0) {
+        contribWrapEl.style.display = 'none';
+        contribEmptyEl.style.display = 'block';
+      } else {
+        contribWrapEl.style.display = '';
+        contribEmptyEl.style.display = 'none';
+        const contribData = contribLabels.map(l => contribMap[l]);
+        const contribColors = contribLabels.map((_, i) => contribPalette[i % contribPalette.length]);
+        const contribTotal = contribData.reduce((s, v) => s + v, 0);
+        document.getElementById('contribCenterVal').textContent = fmtCr(contribTotal / 100000);
+        if (window.cContrib) window.cContrib.destroy();
+        window.cContrib = new Chart(document.getElementById('contribDonut'), {
+          type: 'doughnut',
+          data: { labels: contribLabels, datasets: [{ data: contribData, backgroundColor: contribColors, borderWidth: 0, hoverOffset: 4 }] },
+          options: {
+            cutout: '68%',
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + fmtCr(c.raw / 100000) + ' (' + (contribTotal > 0 ? (c.raw / contribTotal * 100).toFixed(1) : '0.0') + '%)' } }
+            }
+          }
+        });
+        document.getElementById('contribLegend').innerHTML = contribLabels.map((l, i) => {
+          const pct = contribTotal > 0 ? ((contribMap[l] / contribTotal) * 100).toFixed(1) : '0.0';
+          return `<div class="dr"><div class="dd" style="background:${contribColors[i]}"></div>${l} — <strong style="color:var(--tx);font-family:var(--mn);margin-left:3px">${fmtCr(contribMap[l] / 100000)}</strong> <span style="font-size:10px;color:var(--txm)">(${pct}%)</span></div>`;
+        }).join('');
       }
 
       // GPM rows — show all months, dim inactive
