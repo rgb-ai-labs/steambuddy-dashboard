@@ -433,6 +433,10 @@
       background: linear-gradient(90deg, var(--pu), transparent)
     }
 
+    .kpi-rd::before {
+      background: linear-gradient(90deg, var(--rd), transparent)
+    }
+
     .kpi::after {
       content: '';
       position: absolute;
@@ -1519,6 +1523,29 @@
       </div>
     </div>
 
+    <div class="g4" style="margin-top:14px">
+      <div class="card kpi kpi-rd">
+        <div class="kpi-label">Expenses (Cash)</div>
+        <div class="kpi-val" id="k-exp-cash">₹0</div>
+        <div class="kpi-sub neu" id="k-exp-cash-sub">paid in cash</div>
+      </div>
+      <div class="card kpi kpi-pu">
+        <div class="kpi-label">Expenses (Bank)</div>
+        <div class="kpi-val" id="k-exp-bank">₹0</div>
+        <div class="kpi-sub neu" id="k-exp-bank-sub">paid by bank</div>
+      </div>
+      <div class="card kpi kpi-or">
+        <div class="kpi-label">Total Expenses</div>
+        <div class="kpi-val" id="k-exp-total">₹0</div>
+        <div class="kpi-sub neu" id="k-exp-total-sub">cash + bank</div>
+      </div>
+      <div class="card kpi kpi-gn">
+        <div class="kpi-label">Net Profit</div>
+        <div class="kpi-val" id="k-net-profit">₹0</div>
+        <div class="kpi-sub pos" id="k-net-profit-sub">Gross Profit − Total Expenses</div>
+      </div>
+    </div>
+
     <div class="card" style="margin-top:14px">
       <div class="ct">
         <div class="ctitle">GST Payable to Government — Quick View</div>
@@ -2005,6 +2032,12 @@
     const OUT_GST = {"2025-11":{"cgst":365715,"sgst":365715,"igst":112883},"2025-12":{"cgst":667703,"sgst":667703,"igst":86189},"2026-01":{"cgst":1171726,"sgst":1171726,"igst":399624},"2026-02":{"cgst":532532,"sgst":532532,"igst":32077},"2026-04":{"cgst":909848,"sgst":909848,"igst":184295},"2026-05":{"cgst":827614,"sgst":827614,"igst":173324},"2026-06":{"cgst":682783,"sgst":551244,"igst":155278}};
     const IN_GST = {"2025-11":{"cgst":179481,"sgst":179481,"igst":421941},"2025-12":{"cgst":309029,"sgst":309029,"igst":1099523},"2026-01":{"cgst":216982,"sgst":196246,"igst":1277137},"2026-02":{"cgst":91085,"sgst":91085,"igst":882714},"2026-04":{"cgst":179064,"sgst":177300,"igst":1099693},"2026-05":{"cgst":117102,"sgst":117102,"igst":913626},"2026-06":{"cgst":46282,"sgst":50877,"igst":1367489}};
 
+    // Monthly expense totals from Cash Expenses.xlsx / Bank Expenses.xlsx,
+    // keyed by "YYYY-MM". Populated automatically by the pipeline — starts
+    // empty until the client uploads those files and it runs once.
+    const EXP_CASH = {};
+    const EXP_BANK = {};
+
     let curMonth = 'all';
 
     // =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â CHART DEFAULTS =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â
@@ -2158,6 +2191,20 @@
       document.getElementById('k-bep-margin').textContent = (gpmN >= 0 ? '+' : '') + gpm + '%';
       document.getElementById('k-gpm-tot').className = `gbadge ${gpmN >= 0 ? 'gbg' : 'gbr'}`;
       document.getElementById('k-gpm-tot').textContent = (gpmN >= 0 ? '+' : '') + gpm + '%';
+
+      // ===== EXPENSES & NET PROFIT =====
+      const expIds = active.map(m => m.id);
+      const sumExp = obj => expIds.reduce((s, id) => s + (obj[id]?.total || 0), 0);
+      const cashExpL = sumExp(EXP_CASH) / 100000;
+      const bankExpL = sumExp(EXP_BANK) / 100000;
+      const totalExpL = cashExpL + bankExpL;
+      const netProfitL = totalGP - totalExpL;
+      const npPos = netProfitL >= 0;
+      document.getElementById('k-exp-cash').textContent = fmtCr(cashExpL);
+      document.getElementById('k-exp-bank').textContent = fmtCr(bankExpL);
+      document.getElementById('k-exp-total').textContent = fmtCr(totalExpL);
+      document.getElementById('k-net-profit').textContent = (npPos ? '' : '-') + fmtCr(Math.abs(netProfitL));
+      document.getElementById('k-net-profit-sub').innerHTML = `<span class="${npPos ? 'pos' : 'neg'}">${npPos ? '▲' : '▼'} Gross Profit − Total Expenses</span>`;
 
       // ===== ITC RECONCILIATION =====
       const ids = active.map(m => m.id);
