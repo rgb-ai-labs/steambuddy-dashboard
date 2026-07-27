@@ -1636,16 +1636,16 @@
       <div class="ct">
         <div class="ctitle">Revenue Contribution — By Category</div>
       </div>
-      <div id="contribWrap" class="dw" style="padding:14px 18px 18px">
-        <div style="position:relative;width:120px;height:120px;flex-shrink:0">
-          <canvas id="contribDonut" width="120" height="120"></canvas>
+      <div id="contribWrap" style="display:flex;align-items:center;gap:36px;padding:20px 24px 26px">
+        <div style="position:relative;width:200px;height:200px;flex-shrink:0">
+          <canvas id="contribDonut" width="200" height="200"></canvas>
           <div
             style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-            <div id="contribCenterVal" style="font-size:14px;font-weight:600;color:var(--tx);font-family:var(--mn)">₹0</div>
-            <div style="font-size:8px;color:var(--txm);text-transform:uppercase;letter-spacing:.06em">total</div>
+            <div id="contribCenterVal" style="font-size:22px;font-weight:600;color:var(--tx);font-family:var(--mn)">₹0</div>
+            <div style="font-size:9px;color:var(--txm);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">total revenue</div>
           </div>
         </div>
-        <div class="dl" id="contribLegend"></div>
+        <div id="contribBars" style="flex:1;min-width:0"></div>
       </div>
       <div id="contribEmpty" style="display:none;padding:14px 18px 18px;color:var(--txm);font-size:12px;text-align:center;background:rgba(0,0,0,0.2);border-radius:6px;margin:0 18px 18px;border:1px dashed var(--bd2)">
         No "Contributed By" category data for the selected period yet.
@@ -2348,7 +2348,7 @@
         contribWrapEl.style.display = 'none';
         contribEmptyEl.style.display = 'block';
       } else {
-        contribWrapEl.style.display = '';
+        contribWrapEl.style.display = 'flex';
         contribEmptyEl.style.display = 'none';
         const contribData = contribLabels.map(l => contribMap[l]);
         const contribColors = contribLabels.map((_, i) => contribPalette[i % contribPalette.length]);
@@ -2357,18 +2357,24 @@
         if (window.cContrib) window.cContrib.destroy();
         window.cContrib = new Chart(document.getElementById('contribDonut'), {
           type: 'doughnut',
-          data: { labels: contribLabels, datasets: [{ data: contribData, backgroundColor: contribColors, borderWidth: 0, hoverOffset: 4 }] },
+          data: { labels: contribLabels, datasets: [{ data: contribData, backgroundColor: contribColors, borderWidth: 2, borderColor: '#0c1526', hoverOffset: 6 }] },
           options: {
-            cutout: '68%',
+            cutout: '66%',
             plugins: {
               legend: { display: false },
               tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + fmtCr(c.raw / 100000) + ' (' + (contribTotal > 0 ? (c.raw / contribTotal * 100).toFixed(1) : '0.0') + '%)' } }
             }
           }
         });
-        document.getElementById('contribLegend').innerHTML = contribLabels.map((l, i) => {
+        // Same horizontal-bar style used for Product Mix / Price Variance,
+        // for visual consistency — one row per category, sized by share.
+        document.getElementById('contribBars').innerHTML = contribLabels.map((l, i) => {
           const pct = contribTotal > 0 ? ((contribMap[l] / contribTotal) * 100).toFixed(1) : '0.0';
-          return `<div class="dr"><div class="dd" style="background:${contribColors[i]}"></div>${l} — <strong style="color:var(--tx);font-family:var(--mn);margin-left:3px">${fmtCr(contribMap[l] / 100000)}</strong> <span style="font-size:10px;color:var(--txm)">(${pct}%)</span></div>`;
+          return `<div class="hb">
+      <div class="hbn">${l}</div>
+      <div class="hbt"><div class="hbf" style="width:${pct}%;background:${contribColors[i]}"></div></div>
+      <div class="hbv" style="width:auto;white-space:nowrap;padding-left:8px">${fmtCr(contribMap[l] / 100000)} <span style="color:var(--txm)">(${pct}%)</span></div>
+    </div>`;
         }).join('');
       }
 
