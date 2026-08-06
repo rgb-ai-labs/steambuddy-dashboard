@@ -1782,13 +1782,12 @@
       <!-- Price Variance (Vendors) -->
       <div class="card">
         <div class="ct">
-          <div class="ctitle">Price Variance — Top Vendors</div>
+          <div class="ctitle">Top Vendors by Purchase</div>
         </div>
         <div id="vendBars" style="display:flex;flex-direction:column;justify-content:space-around;flex:1"></div>
-        <div class="alert-am">
+        <div class="alert-am" id="vendAlertBox">
           <span>⚠️</span>
-          <span>Waaree Energies = <strong>63.3%</strong> of total purchase — single-supplier concentration risk. Monitor
-            pricing closely.</span>
+          <span id="vendAlertText">Loading…</span>
         </div>
       </div>
     </div>
@@ -2509,10 +2508,26 @@
         .sort((a, b) => b.v - a.v)
         .slice(0, 5);
       const maxVend = vendorsLive[0]?.v || 1;
-      document.getElementById('vendBars').innerHTML = vendorsLive.map((d, i) => {
+      document.getElementById('vendBars').innerHTML = vendorsLive.length ? vendorsLive.map((d, i) => {
         const col = i === 0 ? 'rgba(248,81,73,0.7)' : 'rgba(56,139,253,0.55)';
         return `<div class="hb"><div class="hbn">${d.n}</div><div class="hbt"><div class="hbf" style="width:${(d.v / maxVend) * 100}%;background:${col}"></div></div><div class="hbv" style="width:85px">${i === 0 ? '<span style="color:var(--rd)">' : ''}${fmtCr(d.v)}${i === 0 ? '</span>' : ''}</div></div>`;
-      }).join('');
+      }).join('') : `<div style="color:var(--txm);font-size:11px;text-align:center;padding:20px 0">No purchase data for this period</div>`;
+
+      // Concentration-risk alert — previously a hardcoded "Waaree Energies =
+      // 63.3%" that never matched whatever months were actually selected.
+      // Computed from the SAME active-months totals as the bars above it,
+      // so the two always agree.
+      const totalPurLive = Object.values(vendMapLive).reduce((s, v) => s + v, 0);
+      const vendAlertBox = document.getElementById('vendAlertBox');
+      const vendAlertText = document.getElementById('vendAlertText');
+      if (vendorsLive.length && totalPurLive > 0) {
+        const topVend = vendorsLive[0];
+        const vendSharePct = ((topVend.v / totalPurLive) * 100).toFixed(1);
+        vendAlertBox.style.display = 'flex';
+        vendAlertText.innerHTML = `${topVend.n} = <strong>${vendSharePct}%</strong> of total purchase — single-supplier concentration risk. Monitor pricing closely.`;
+      } else {
+        vendAlertBox.style.display = 'none';
+      }
 
       // Top customers — recomputed from DB_SALES for the active months
       // (previously this used a pipeline-computed all-time-total array, so
