@@ -1736,23 +1736,23 @@
             <canvas id="custDonut" width="96" height="96"></canvas>
             <div
               style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-              <div style="font-size:17px;font-weight:500;color:var(--tx);font-family:var(--mn)">33%</div>
+              <div id="cust-retention-pct" style="font-size:17px;font-weight:500;color:var(--tx);font-family:var(--mn)">0%</div>
               <div style="font-size:8px;color:var(--txm);text-transform:uppercase;letter-spacing:.06em">retention</div>
             </div>
           </div>
           <div class="dl">
             <div class="dr">
               <div class="dd" style="background:var(--bl2)"></div>New — <strong
-                style="color:var(--tx);font-family:var(--mn);margin-left:3px">94</strong> <span
-                style="font-size:10px;color:var(--txm)">(66.7%)</span>
+                id="cust-new-count" style="color:var(--tx);font-family:var(--mn);margin-left:3px">0</strong> <span
+                id="cust-new-pct" style="font-size:10px;color:var(--txm)">(0.0%)</span>
             </div>
             <div class="dr">
               <div class="dd" style="background:var(--gn)"></div>Returning — <strong
-                style="color:var(--tx);font-family:var(--mn);margin-left:3px">47</strong> <span
-                style="font-size:10px;color:var(--txm)">(33.3%)</span>
+                id="cust-ret-count" style="color:var(--tx);font-family:var(--mn);margin-left:3px">0</strong> <span
+                id="cust-ret-pct" style="font-size:10px;color:var(--txm)">(0.0%)</span>
             </div>
             <div style="font-size:10px;color:var(--txm);margin-top:4px;padding-top:8px;border-top:1px solid var(--bd)">
-              Total Unique: <strong style="color:var(--tx);font-family:var(--mn)">141</strong></div>
+              Total Unique: <strong id="cust-total-unique" style="color:var(--tx);font-family:var(--mn)">0</strong></div>
           </div>
         </div>
         <div style="font-size:9px;color:var(--txd);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">
@@ -2309,9 +2309,9 @@
             }
           }
         });
-        new Chart(document.getElementById('custDonut'), {
+        window.cCustDonut = new Chart(document.getElementById('custDonut'), {
           type: 'doughnut',
-          data: { labels: ['New', 'Returning'], datasets: [{ data: [94, 47], backgroundColor: ['#388bfd', '#3fb950'], borderWidth: 0, hoverOffset: 4 }] },
+          data: { labels: ['New', 'Returning'], datasets: [{ data: [0, 0], backgroundColor: ['#388bfd', '#3fb950'], borderWidth: 0, hoverOffset: 4 }] },
           options: { cutout: '72%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + c.raw } } } }
         });
         window.cCustBar = new Chart(document.getElementById('custBar'), {
@@ -2336,6 +2336,42 @@
           window.cCustBar.data.datasets[0].backgroundColor = active.map((_, i) => barColors[i % 4]);
           window.cCustBar.update();
         }
+      }
+
+      // ===== CUSTOMER ACQUISITION & RETENTION (previously 100% hardcoded
+      // placeholder text — 33% / 94 / 47 / 141 never came from any data at
+      // all). Real definition: a customer is "New" if their earliest-ever
+      // invoice (across the full history, not just the active filter) falls
+      // within the currently active period; "Returning" if they were
+      // already invoicing before it. With "All Months" selected this will
+      // correctly show ~100% New, since there's no earlier history to have
+      // returned from — that's expected, not a bug. =====
+      const custFirstInvoice = {};
+      DB_SALES.forEach(r => {
+        if (!custFirstInvoice[r.c] || r.d < custFirstInvoice[r.c]) custFirstInvoice[r.c] = r.d;
+      });
+      const activeCustomerNames = new Set();
+      DB_SALES.forEach(r => { if (activeIds.has(getMonthCode(r.d))) activeCustomerNames.add(r.c); });
+      const earliestActiveMonthId = [...activeIds].sort()[0];
+      let newCustCount = 0, retCustCount = 0;
+      activeCustomerNames.forEach(name => {
+        const firstMonthId = custFirstInvoice[name].substring(0, 7);
+        if (!earliestActiveMonthId || firstMonthId >= earliestActiveMonthId) newCustCount++;
+        else retCustCount++;
+      });
+      const totalUniqueActive = activeCustomerNames.size;
+      const retentionPct = totalUniqueActive > 0 ? Math.round((retCustCount / totalUniqueActive) * 100) : 0;
+      const newPct = totalUniqueActive > 0 ? ((newCustCount / totalUniqueActive) * 100).toFixed(1) : '0.0';
+      const retPct = totalUniqueActive > 0 ? ((retCustCount / totalUniqueActive) * 100).toFixed(1) : '0.0';
+      document.getElementById('cust-retention-pct').textContent = retentionPct + '%';
+      document.getElementById('cust-new-count').textContent = newCustCount;
+      document.getElementById('cust-new-pct').textContent = `(${newPct}%)`;
+      document.getElementById('cust-ret-count').textContent = retCustCount;
+      document.getElementById('cust-ret-pct').textContent = `(${retPct}%)`;
+      document.getElementById('cust-total-unique').textContent = totalUniqueActive;
+      if (window.cCustDonut) {
+        window.cCustDonut.data.datasets[0].data = [newCustCount, retCustCount];
+        window.cCustDonut.update();
       }
 
       // ===== REVENUE CONTRIBUTION BY CATEGORY (dynamic — categories not hardcoded) =====
@@ -2450,21 +2486,48 @@
         return `<div class="hb"><div class="hbn" style="width:235px">${d.n}${tBadge}</div><div class="hbt"><div class="hbf" style="width:${(d.v / maxProd) * 100}%;background:${cols[i % 6]}"></div></div><div class="hbv">${fmtCr(d.v)}</div></div>`;
       }).join('');
 
-      // Vendor bars
-      const maxVend = VENDORS[0].v;
-      document.getElementById('vendBars').innerHTML = VENDORS.map((d, i) => {
+      // Vendor bars — recomputed from DB_PUR for the active months (previously
+      // this used a top-level array computed once from ALL purchases, so it
+      // never changed when the month filter changed).
+      const vendMapLive = {};
+      DB_PUR.forEach(r => {
+        if (!activeIds.has(getMonthCode(r.d))) return;
+        vendMapLive[r.c] = (vendMapLive[r.c] || 0) + r.tot / 100000;
+      });
+      const vendorsLive = Object.keys(vendMapLive)
+        .map(n => ({ n, v: vendMapLive[n] }))
+        .sort((a, b) => b.v - a.v)
+        .slice(0, 5);
+      const maxVend = vendorsLive[0]?.v || 1;
+      document.getElementById('vendBars').innerHTML = vendorsLive.map((d, i) => {
         const col = i === 0 ? 'rgba(248,81,73,0.7)' : 'rgba(56,139,253,0.55)';
-        const vTag = d.var > 0 ? `<span title="Price Variance" style="color:var(--rd);font-size:9px;margin-left:5px">▲ +${d.var}%</span>` : `<span title="Price Variance" style="color:var(--gn);font-size:9px;margin-left:5px">▼ ${Math.abs(d.var)}%</span>`;
-        return `<div class="hb"><div class="hbn">${d.n}</div><div class="hbt"><div class="hbf" style="width:${(d.v / maxVend) * 100}%;background:${col}"></div></div><div class="hbv" style="width:85px">${i === 0 ? '<span style="color:var(--rd)">' : ''}${fmtCr(d.v)}${i === 0 ? '</span>' : ''}${vTag}</div></div>`;
+        return `<div class="hb"><div class="hbn">${d.n}</div><div class="hbt"><div class="hbf" style="width:${(d.v / maxVend) * 100}%;background:${col}"></div></div><div class="hbv" style="width:85px">${i === 0 ? '<span style="color:var(--rd)">' : ''}${fmtCr(d.v)}${i === 0 ? '</span>' : ''}</div></div>`;
       }).join('');
 
-      // Top customers
-      document.getElementById('topCustBody').innerHTML = DB_CUST.slice(0, 7).map(c => `
-    <tr>
+      // Top customers — recomputed from DB_SALES for the active months
+      // (previously this used a pipeline-computed all-time-total array, so
+      // it never changed when the month filter changed). GSTIN is looked up
+      // from DB_CUST since that's the only place it's stored.
+      const custGstinMap = {};
+      DB_CUST.forEach(c => { custGstinMap[c.n] = c.g; });
+      const topCustMapLive = {};
+      DB_SALES.forEach(r => {
+        if (!activeIds.has(getMonthCode(r.d))) return;
+        topCustMapLive[r.c] = (topCustMapLive[r.c] || 0) + r.tot;
+      });
+      const topCustGrandTotal = Object.values(topCustMapLive).reduce((s, v) => s + v, 0);
+      const topCustLive = Object.keys(topCustMapLive)
+        .map(n => ({ n, v: topCustMapLive[n], g: custGstinMap[n] || '-' }))
+        .sort((a, b) => b.v - a.v);
+      topCustLive.forEach((c, i) => { c.hi = i < 5; });
+      document.getElementById('topCustBody').innerHTML = topCustLive.slice(0, 7).map(c => {
+        const share = topCustGrandTotal > 0 ? ((c.v / topCustGrandTotal) * 100).toFixed(1) : '0.0';
+        return `<tr>
       <td style="color:var(--tx)">${c.n}</td>
       <td class="r" style="color:var(--tx2)">${fmtCr(c.v / 100000)}</td>
-      <td class="r"><span class="sbadge ${c.hi ? 'shi' : 'smd'}">${c.s}%</span></td>
-    </tr>`).join('');
+      <td class="r"><span class="sbadge ${c.hi ? 'shi' : 'smd'}">${share}%</span></td>
+    </tr>`;
+      }).join('');
 
       renderTables();
     }
