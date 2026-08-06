@@ -522,6 +522,14 @@
     }
 
     /* — CHART BOX — */
+    /* Wraps a .cb chart box that needs to grow wider than its card as more
+       months accumulate (see comboChartWrap's dynamic min-width, set in JS)
+       instead of squeezing every bar thinner forever. */
+    .cb-scroll {
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
     .cb {
       position: relative;
       width: 100%
@@ -598,6 +606,16 @@
       background: var(--s4)
     }
 
+    /* One .gpmr row is added per month, forever, as the pipeline picks up
+       new data — without a cap this card (and the whole grid row it sits
+       in, since siblings stretch to match) would just keep growing taller
+       every month. Capped height + scroll keeps it stable indefinitely. */
+    #gpmRows {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
     .gpmr-mo {
       font-size: 10px;
       color: var(--tx2);
@@ -659,6 +677,14 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 8px
+    }
+
+    /* Same unbounded-growth issue as #gpmRows — one .rrow per month,
+       forever. Capped + scrollable so the card stays a stable size. */
+    #psRows {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 2px;
     }
 
     .rmo {
@@ -751,14 +777,22 @@
     }
 
     /* — BEP CHIPS — */
+    /* One chip is added per month, forever. flex:1 on .bchip would make
+       every chip proportionally narrower each time a month is added, until
+       the label/status text no longer fits — so instead each chip keeps a
+       fixed minimum width and the row scrolls horizontally once there are
+       more months than fit in the card. */
     .bep-chips {
       display: flex;
       gap: 7px;
-      margin-bottom: 12px
+      margin-bottom: 12px;
+      overflow-x: auto;
+      padding-bottom: 2px;
     }
 
     .bchip {
-      flex: 1;
+      flex: 0 0 auto;
+      min-width: 78px;
       padding: 9px 8px;
       border-radius: var(--r2);
       text-align: center;
@@ -809,16 +843,25 @@
     }
 
     /* — MoM STATS — */
+    /* One item is added per consecutive month pair, forever (plus a YoY
+       item once a year of history exists). space-between with no wrap
+       would just squeeze/overlap text as more accumulate, so this scrolls
+       horizontally instead once there are more items than fit. */
     .mom-row {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
+      gap: 16px;
       margin-top: 12px;
       padding-top: 11px;
-      border-top: 1px solid var(--bd)
+      border-top: 1px solid var(--bd);
+      overflow-x: auto;
+      padding-bottom: 2px;
     }
 
     .mom-item {
-      text-align: center
+      text-align: center;
+      flex-shrink: 0;
+      min-width: 64px
     }
 
     .mom-lbl {
@@ -1313,6 +1356,17 @@
       color: var(--tx)
     }
 
+    /* Caps how tall the per-month checkbox list can grow as new months
+       accumulate over time — "All Months" and the "Select months" label
+       stay pinned above it, only this inner list scrolls. Without this the
+       dropdown would just keep growing taller forever and eventually run
+       off the bottom of the screen. */
+    #monthCheckboxList {
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
     .mopt.all-opt {
       border-bottom: 1px solid var(--bd);
       border-radius: 0;
@@ -1625,7 +1679,7 @@
             </div>
           </div>
         </div>
-        <div class="cb h220"><canvas id="comboChart"></canvas></div>
+        <div class="cb-scroll"><div class="cb h220" id="comboChartWrap"><canvas id="comboChart"></canvas></div></div>
         <div class="mom-row" id="momRow"></div>
       </div>
       <div class="card">
@@ -1757,7 +1811,7 @@
         </div>
         <div style="font-size:9px;color:var(--txd);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">
           Monthly Customers</div>
-        <div class="cb h90" style="flex:1"><canvas id="custBar"></canvas></div>
+        <div class="cb-scroll" style="flex:1"><div class="cb h90" id="custBarWrap"><canvas id="custBar"></canvas></div></div>
       </div>
 
       <!-- Purchase-to-Sale Ratio -->
@@ -2278,6 +2332,19 @@
       const cN = active.map(m => m.n);
       const barColors = ['rgba(56,139,253,0.5)', 'rgba(56,139,253,0.65)', 'rgba(56,139,253,0.85)', 'rgba(56,139,253,0.6)'];
 
+      // Keeps every bar at least ~70px wide no matter how many months are
+      // selected, instead of letting Chart.js squeeze them thinner forever
+      // as new months accumulate. Below that width the chart box grows
+      // past its card and .cb-scroll (its wrapper) scrolls horizontally;
+      // above it, min-width has no effect and this looks exactly as before.
+      const comboMinWidth = active.length * 70;
+      const comboChartWrapEl = document.getElementById('comboChartWrap');
+      if (comboChartWrapEl) comboChartWrapEl.style.minWidth = comboMinWidth + 'px';
+      // Same fix for the smaller "Monthly Customers" bar chart.
+      const custBarMinWidth = active.length * 40;
+      const custBarWrapEl = document.getElementById('custBarWrap');
+      if (custBarWrapEl) custBarWrapEl.style.minWidth = custBarMinWidth + 'px';
+
       if (!window.cMain) {
         window.cMain = new Chart(document.getElementById('comboChart'), {
           type: 'bar',
@@ -2316,6 +2383,7 @@
           }
         });
       } else {
+        window.cMain.resize(); // picks up comboChartWrap's just-updated min-width immediately, rather than waiting on the async ResizeObserver
         window.cMain.data.labels = cLabels;
         window.cMain.data.datasets[0].data = cRev;
         window.cMain.data.datasets[1].data = cPur;
@@ -2323,6 +2391,7 @@
         window.cMain.data.datasets[2].pointBackgroundColor = active.map(m => m.gpm >= 0 ? '#3fb950' : '#f85149');
         window.cMain.update();
         if (window.cCustBar) {
+          window.cCustBar.resize();
           window.cCustBar.data.labels = cLabels;
           window.cCustBar.data.datasets[0].data = cN;
           window.cCustBar.data.datasets[0].backgroundColor = active.map((_, i) => barColors[i % 4]);
