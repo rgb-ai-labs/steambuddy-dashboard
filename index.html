@@ -2166,7 +2166,19 @@
       if (!firstActiveId) return;
       const target = containerEl.querySelector(itemSelector.replace('{id}', firstActiveId));
       if (target) {
-        target.scrollIntoView({ behavior: 'auto', inline: 'start', block: 'nearest' });
+        // Deliberately NOT scrollIntoView() here: it walks every scrollable
+        // ancestor, including the page itself — if the target row happens
+        // to be below the fold (e.g. the month dropdown near the top of
+        // the page vs. a card further down), it was yanking the whole page
+        // down on every checkbox toggle. Adjusting containerEl's own
+        // scroll position directly, by exactly the on-screen offset
+        // between it and the target, moves ONLY this one small container
+        // and never touches the page's scroll position.
+        if (vertical) {
+          containerEl.scrollTop += target.getBoundingClientRect().top - containerEl.getBoundingClientRect().top;
+        } else {
+          containerEl.scrollLeft += target.getBoundingClientRect().left - containerEl.getBoundingClientRect().left;
+        }
       } else if (MONTHS[0] && firstActiveId === MONTHS[0].id) {
         // The MoM strip has no item for the very first month overall (it's
         // the start of the first pair, not the end of any pair, so nothing
