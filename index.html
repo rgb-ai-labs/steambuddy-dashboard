@@ -853,7 +853,7 @@
     .mom-row {
       display: flex;
       justify-content: flex-start;
-      gap: 16px;
+      gap: 24px;
       margin-top: 12px;
       padding-top: 11px;
       border-top: 1px solid var(--bd);
@@ -862,7 +862,7 @@
     .mom-item {
       text-align: center;
       flex-shrink: 0;
-      min-width: 64px
+      min-width: 84px
     }
 
     .mom-lbl {
@@ -2261,27 +2261,57 @@
 
       // Month-over-month growth row (auto-derives from however many months exist)
       const momEl = document.getElementById('momRow');
+      let momItemCount = 0;
       if (momEl) {
         const shortLbl = mo => mo.lbl.split(' ')[0].toUpperCase();
-        let momHtml = '';
-        for (let i = 1; i < MONTHS.length; i++) {
-          const prev = MONTHS[i - 1], cur = MONTHS[i];
+        const allSelected = active.length === MONTHS.length;
+
+        // Which consecutive pairs to show:
+        //  - "All Months" -> every pair across the whole history (unchanged).
+        //  - A specific selection -> the pair leading INTO the first selected
+        //    month, pairs BETWEEN each consecutive pair of selected months
+        //    (this naturally skips over any deselected or missing months —
+        //    e.g. selecting Dec + Feb shows Dec→Feb directly, and selecting
+        //    Feb + Apr shows Feb→Apr even though March doesn't exist), and
+        //    the pair leading OUT of the last selected month. A single
+        //    selected month therefore shows exactly its two neighboring
+        //    pairs (e.g. selecting May shows Apr→May and May→Jun).
+        const pairs = [];
+        if (allSelected) {
+          for (let i = 1; i < MONTHS.length; i++) pairs.push([MONTHS[i - 1], MONTHS[i]]);
+        } else if (active.length > 0) {
+          const firstIdx = MONTHS.findIndex(m => m.id === active[0].id);
+          const lastIdx = MONTHS.findIndex(m => m.id === active[active.length - 1].id);
+          if (firstIdx > 0) pairs.push([MONTHS[firstIdx - 1], MONTHS[firstIdx]]);
+          for (let i = 1; i < active.length; i++) pairs.push([active[i - 1], active[i]]);
+          if (lastIdx !== -1 && lastIdx < MONTHS.length - 1) pairs.push([MONTHS[lastIdx], MONTHS[lastIdx + 1]]);
+        }
+
+        let momHtml = pairs.map(([prev, cur]) => {
           const growth = prev.rev > 0 ? ((cur.rev - prev.rev) / prev.rev) * 100 : 0;
-          momHtml += `<div class="mom-item" data-month-id="${cur.id}">
+          return `<div class="mom-item" data-month-id="${cur.id}">
             <div class="mom-lbl">${shortLbl(prev)} → ${shortLbl(cur)}</div>
             <div class="mom-val ${growth >= 0 ? 'pos' : 'neg'}">${growth >= 0 ? '▲' : '▼'} ${growth >= 0 ? '+' : '−'}${Math.abs(growth).toFixed(1)}%</div>
           </div>`;
-        }
-        if (MONTHS.length > 0) {
-          const last = MONTHS[MONTHS.length - 1];
-          const [ly, lm] = last.id.split('-');
+        }).join('');
+        momItemCount = pairs.length;
+
+        // YoY anchors to whatever counts as "the end" of the current view:
+        // the real last month when All Months is selected (unchanged), or
+        // the last SELECTED month otherwise, so it stays meaningful when
+        // filtered too instead of silently comparing against an unrelated
+        // month outside the current selection.
+        const yoyAnchor = allSelected ? MONTHS[MONTHS.length - 1] : active[active.length - 1];
+        if (yoyAnchor) {
+          const [ly, lm] = yoyAnchor.id.split('-');
           const priorYear = monthMap[(parseInt(ly, 10) - 1) + '-' + lm];
           if (priorYear && priorYear.rev > 0) {
-            const yoy = ((last.rev - priorYear.rev) / priorYear.rev) * 100;
-            momHtml += `<div class="mom-item" data-month-id="${last.id}" style="border-left:1px solid var(--bd2);padding-left:12px">
+            const yoy = ((yoyAnchor.rev - priorYear.rev) / priorYear.rev) * 100;
+            momHtml += `<div class="mom-item" data-month-id="${yoyAnchor.id}" style="border-left:1px solid var(--bd2);padding-left:12px">
               <div class="mom-lbl">YoY Growth</div>
               <div class="mom-val ${yoy >= 0 ? 'pos' : 'neg'}" style="color:${yoy >= 0 ? 'var(--gn)' : '#f85149'}">${yoy >= 0 ? '▲' : '▼'} ${yoy >= 0 ? '+' : '−'}${Math.abs(yoy).toFixed(1)}%</div>
             </div>`;
+            momItemCount++;
           }
         }
         momEl.innerHTML = momHtml;
@@ -2377,15 +2407,19 @@
       // looks exactly as before. Set on #chartMomInner (not the chart box
       // alone) so the chart and the MoM strip beneath it are always
       // exactly as wide as each other and scroll together as one unit.
-      const comboMinWidth = active.length * 70;
+      // Width is driven by whichever needs more room: the chart's bars
+      // (one per selected month) or the MoM strip's own item count (which,
+      // when filtered to a specific selection, shows only the 2-3 pairs
+      // touching that selection — usually far fewer than active.length, but
+      // occasionally more space per item since each pair label is wider
+      // than a single month's bar). Taking the larger of the two means
+      // neither ever gets squeezed to fit the other.
+      const comboMinWidth = Math.max(active.length * 70, momItemCount * 108);
       const chartMomInnerEl = document.getElementById('chartMomInner');
       if (chartMomInnerEl) chartMomInnerEl.style.minWidth = comboMinWidth + 'px';
       // Chart + MoM strip share one scroll region (#chartMomScroll) so they
-      // always move together — position it based on the MoM strip's items
-      // since that list always shows every month (the chart above may show
-      // fewer bars if filtered), making it the reliable reference for
-      // "where's the relevant month" in this shared area. Must run AFTER
-      // the min-width above so scrollWidth reflects the current month count.
+      // always move together. Must run AFTER the min-width above so
+      // scrollWidth reflects the current month count.
       scrollCardToRelevant(document.getElementById('chartMomScroll'), '[data-month-id="{id}"]', false, active);
       // Same fix for the smaller "Monthly Customers" bar chart.
       const custBarMinWidth = active.length * 40;
