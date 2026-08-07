@@ -843,16 +843,22 @@
     }
 
     /* — MoM STATS — */
-    /* One item is added per consecutive month pair, forever (plus a YoY
-       item once a year of history exists). space-between with no wrap
-       would just squeeze/overlap text as more accumulate. This no longer
-       scrolls on its own — it lives inside #chartMomScroll along with the
-       chart above it, so both scroll together as one unit instead of
-       independently (which is what made this look squeezed: it was being
-       sized/scrolled separately from the chart it visually belongs with). */
+    /* Scrolls independently from the chart above it (its own #momScroll
+       wrapper, not shared). Each .mom-item has flex-grow:1 with a fixed
+       basis and no shrink: when there's spare width (the common case,
+       since this is usually just 2-4 contextual pairs, not the full
+       history) the items grow to spread evenly across the full card
+       instead of bunching to the left with dead space after them; when
+       there isn't enough width (many months / "All Months" selected),
+       shrink:0 stops them compressing below a readable size and the row
+       overflows into #momScroll's scrollbar instead. */
+    .mom-scroll {
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
     .mom-row {
       display: flex;
-      justify-content: flex-start;
       gap: 24px;
       margin-top: 12px;
       padding-top: 11px;
@@ -861,8 +867,7 @@
 
     .mom-item {
       text-align: center;
-      flex-shrink: 0;
-      min-width: 84px
+      flex: 1 0 84px;
     }
 
     .mom-lbl {
@@ -1680,12 +1685,8 @@
             </div>
           </div>
         </div>
-        <div class="cb-scroll" id="chartMomScroll">
-          <div id="chartMomInner">
-            <div class="cb h220" id="comboChartWrap"><canvas id="comboChart"></canvas></div>
-            <div class="mom-row" id="momRow"></div>
-          </div>
-        </div>
+        <div class="cb-scroll"><div class="cb h220" id="comboChartWrap"><canvas id="comboChart"></canvas></div></div>
+        <div class="mom-scroll" id="momScroll"><div class="mom-row" id="momRow"></div></div>
       </div>
       <div class="card">
         <div class="ct">
@@ -2261,7 +2262,6 @@
 
       // Month-over-month growth row (auto-derives from however many months exist)
       const momEl = document.getElementById('momRow');
-      let momItemCount = 0;
       if (momEl) {
         const shortLbl = mo => mo.lbl.split(' ')[0].toUpperCase();
         const allSelected = active.length === MONTHS.length;
@@ -2294,7 +2294,6 @@
             <div class="mom-val ${growth >= 0 ? 'pos' : 'neg'}">${growth >= 0 ? '▲' : '▼'} ${growth >= 0 ? '+' : '−'}${Math.abs(growth).toFixed(1)}%</div>
           </div>`;
         }).join('');
-        momItemCount = pairs.length;
 
         // YoY anchors to whatever counts as "the end" of the current view:
         // the real last month when All Months is selected (unchanged), or
@@ -2311,7 +2310,6 @@
               <div class="mom-lbl">YoY Growth</div>
               <div class="mom-val ${yoy >= 0 ? 'pos' : 'neg'}" style="color:${yoy >= 0 ? 'var(--gn)' : '#f85149'}">${yoy >= 0 ? '▲' : '▼'} ${yoy >= 0 ? '+' : '−'}${Math.abs(yoy).toFixed(1)}%</div>
             </div>`;
-            momItemCount++;
           }
         }
         momEl.innerHTML = momHtml;
@@ -2401,27 +2399,21 @@
 
       // Keeps every bar at least ~70px wide no matter how many months are
       // selected, instead of letting Chart.js squeeze them thinner forever
-      // as new months accumulate. Below that width the chart+MoM-strip box
-      // grows past its card and #chartMomScroll (their shared wrapper)
-      // scrolls horizontally; above it, min-width has no effect and this
-      // looks exactly as before. Set on #chartMomInner (not the chart box
-      // alone) so the chart and the MoM strip beneath it are always
-      // exactly as wide as each other and scroll together as one unit.
-      // Width is driven by whichever needs more room: the chart's bars
-      // (one per selected month) or the MoM strip's own item count (which,
-      // when filtered to a specific selection, shows only the 2-3 pairs
-      // touching that selection — usually far fewer than active.length, but
-      // occasionally more space per item since each pair label is wider
-      // than a single month's bar). Taking the larger of the two means
-      // neither ever gets squeezed to fit the other.
-      const comboMinWidth = Math.max(active.length * 70, momItemCount * 108);
-      const chartMomInnerEl = document.getElementById('chartMomInner');
-      if (chartMomInnerEl) chartMomInnerEl.style.minWidth = comboMinWidth + 'px';
-      // Chart + MoM strip share one scroll region (#chartMomScroll) so they
-      // always move together. Must run AFTER the min-width above so
-      // scrollWidth reflects the current month count.
-      scrollCardToRelevant(document.getElementById('chartMomScroll'), '[data-month-id="{id}"]', false, active);
-      // Same fix for the smaller "Monthly Customers" bar chart.
+      // as new months accumulate. Below that width the chart box grows
+      // past its card and its own .cb-scroll wrapper scrolls horizontally;
+      // above it, min-width has no effect and this looks exactly as before.
+      // This chart and the MoM strip below it scroll independently of each
+      // other — each has its own dedicated scroll wrapper, not a shared one.
+      const comboMinWidth = active.length * 70;
+      const comboChartWrapEl = document.getElementById('comboChartWrap');
+      if (comboChartWrapEl) comboChartWrapEl.style.minWidth = comboMinWidth + 'px';
+      scrollCardToRelevant(document.getElementById('comboChartWrap')?.closest('.cb-scroll'), '[data-month-id="{id}"]', false, active);
+      // The MoM strip doesn't need a JS-computed width the way the chart
+      // does — its items grow to spread evenly via flex-grow (see .mom-item
+      // CSS) when they fit, and refuse to shrink below a readable size
+      // (falling back to #momScroll's own scrollbar) when they don't.
+      scrollCardToRelevant(document.getElementById('momScroll'), '[data-month-id="{id}"]', false, active);
+      // Same min-width fix for the smaller "Monthly Customers" bar chart.
       const custBarMinWidth = active.length * 40;
       const custBarWrapEl = document.getElementById('custBarWrap');
       if (custBarWrapEl) custBarWrapEl.style.minWidth = custBarMinWidth + 'px';
