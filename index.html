@@ -845,8 +845,11 @@
     /* — MoM STATS — */
     /* One item is added per consecutive month pair, forever (plus a YoY
        item once a year of history exists). space-between with no wrap
-       would just squeeze/overlap text as more accumulate, so this scrolls
-       horizontally instead once there are more items than fit. */
+       would just squeeze/overlap text as more accumulate. This no longer
+       scrolls on its own — it lives inside #chartMomScroll along with the
+       chart above it, so both scroll together as one unit instead of
+       independently (which is what made this look squeezed: it was being
+       sized/scrolled separately from the chart it visually belongs with). */
     .mom-row {
       display: flex;
       justify-content: flex-start;
@@ -854,8 +857,6 @@
       margin-top: 12px;
       padding-top: 11px;
       border-top: 1px solid var(--bd);
-      overflow-x: auto;
-      padding-bottom: 2px;
     }
 
     .mom-item {
@@ -1679,8 +1680,12 @@
             </div>
           </div>
         </div>
-        <div class="cb-scroll"><div class="cb h220" id="comboChartWrap"><canvas id="comboChart"></canvas></div></div>
-        <div class="mom-row" id="momRow"></div>
+        <div class="cb-scroll" id="chartMomScroll">
+          <div id="chartMomInner">
+            <div class="cb h220" id="comboChartWrap"><canvas id="comboChart"></canvas></div>
+            <div class="mom-row" id="momRow"></div>
+          </div>
+        </div>
       </div>
       <div class="card">
         <div class="ct">
@@ -2139,6 +2144,38 @@
       return '\u20b9' + lakhs.toFixed(1) + ' L';
     }
 
+    // Keeps every scrollable "one item per month" card pointed at whatever
+    // is actually relevant right now, instead of always defaulting to the
+    // start of the scroll area (which \u2014 for a timeline that only ever
+    // grows \u2014 would mean defaulting to the OLDEST data forever):
+    //   - "All Months" selected -> scroll to the end, so the latest month
+    //     is what's immediately visible without the user hunting for it.
+    //   - A specific month/months selected -> scroll so the first selected
+    //     month is brought into view directly.
+    // itemSelector must match elements carrying data-month-id="<month id>".
+    function scrollCardToRelevant(containerEl, itemSelector, vertical, activeArr) {
+      if (!containerEl) return;
+      const allSelected = activeArr.length === MONTHS.length;
+      if (allSelected) {
+        if (vertical) containerEl.scrollTop = containerEl.scrollHeight;
+        else containerEl.scrollLeft = containerEl.scrollWidth;
+        return;
+      }
+      const firstActiveId = activeArr[0] && activeArr[0].id;
+      if (!firstActiveId) return;
+      const target = containerEl.querySelector(itemSelector.replace('{id}', firstActiveId));
+      if (target) {
+        target.scrollIntoView({ behavior: 'auto', inline: 'start', block: 'nearest' });
+      } else if (MONTHS[0] && firstActiveId === MONTHS[0].id) {
+        // The MoM strip has no item for the very first month overall (it's
+        // the start of the first pair, not the end of any pair, so nothing
+        // is tagged with its id) — but "nothing before this" also means
+        // the start of the scroll area is already the right place to be.
+        if (vertical) containerEl.scrollTop = 0;
+        else containerEl.scrollLeft = 0;
+      }
+    }
+
     // =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â UI ROUTING =Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â=Â
     function switchPage(id, el) {
       document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
@@ -2230,7 +2267,7 @@
         for (let i = 1; i < MONTHS.length; i++) {
           const prev = MONTHS[i - 1], cur = MONTHS[i];
           const growth = prev.rev > 0 ? ((cur.rev - prev.rev) / prev.rev) * 100 : 0;
-          momHtml += `<div class="mom-item">
+          momHtml += `<div class="mom-item" data-month-id="${cur.id}">
             <div class="mom-lbl">${shortLbl(prev)} → ${shortLbl(cur)}</div>
             <div class="mom-val ${growth >= 0 ? 'pos' : 'neg'}">${growth >= 0 ? '▲' : '▼'} ${growth >= 0 ? '+' : '−'}${Math.abs(growth).toFixed(1)}%</div>
           </div>`;
@@ -2241,7 +2278,7 @@
           const priorYear = monthMap[(parseInt(ly, 10) - 1) + '-' + lm];
           if (priorYear && priorYear.rev > 0) {
             const yoy = ((last.rev - priorYear.rev) / priorYear.rev) * 100;
-            momHtml += `<div class="mom-item" style="border-left:1px solid var(--bd2);padding-left:12px">
+            momHtml += `<div class="mom-item" data-month-id="${last.id}" style="border-left:1px solid var(--bd2);padding-left:12px">
               <div class="mom-lbl">YoY Growth</div>
               <div class="mom-val ${yoy >= 0 ? 'pos' : 'neg'}" style="color:${yoy >= 0 ? 'var(--gn)' : '#f85149'}">${yoy >= 0 ? '▲' : '▼'} ${yoy >= 0 ? '+' : '−'}${Math.abs(yoy).toFixed(1)}%</div>
             </div>`;
@@ -2334,16 +2371,27 @@
 
       // Keeps every bar at least ~70px wide no matter how many months are
       // selected, instead of letting Chart.js squeeze them thinner forever
-      // as new months accumulate. Below that width the chart box grows
-      // past its card and .cb-scroll (its wrapper) scrolls horizontally;
-      // above it, min-width has no effect and this looks exactly as before.
+      // as new months accumulate. Below that width the chart+MoM-strip box
+      // grows past its card and #chartMomScroll (their shared wrapper)
+      // scrolls horizontally; above it, min-width has no effect and this
+      // looks exactly as before. Set on #chartMomInner (not the chart box
+      // alone) so the chart and the MoM strip beneath it are always
+      // exactly as wide as each other and scroll together as one unit.
       const comboMinWidth = active.length * 70;
-      const comboChartWrapEl = document.getElementById('comboChartWrap');
-      if (comboChartWrapEl) comboChartWrapEl.style.minWidth = comboMinWidth + 'px';
+      const chartMomInnerEl = document.getElementById('chartMomInner');
+      if (chartMomInnerEl) chartMomInnerEl.style.minWidth = comboMinWidth + 'px';
+      // Chart + MoM strip share one scroll region (#chartMomScroll) so they
+      // always move together — position it based on the MoM strip's items
+      // since that list always shows every month (the chart above may show
+      // fewer bars if filtered), making it the reliable reference for
+      // "where's the relevant month" in this shared area. Must run AFTER
+      // the min-width above so scrollWidth reflects the current month count.
+      scrollCardToRelevant(document.getElementById('chartMomScroll'), '[data-month-id="{id}"]', false, active);
       // Same fix for the smaller "Monthly Customers" bar chart.
       const custBarMinWidth = active.length * 40;
       const custBarWrapEl = document.getElementById('custBarWrap');
       if (custBarWrapEl) custBarWrapEl.style.minWidth = custBarMinWidth + 'px';
+      scrollCardToRelevant(document.getElementById('custBarWrap')?.closest('.cb-scroll'), '[data-month-id="{id}"]', false, active);
 
       if (!window.cMain) {
         window.cMain = new Chart(document.getElementById('comboChart'), {
@@ -2501,7 +2549,7 @@
         const on = active.some(a => a.id === m.id);
         const dim = active.length < MONTHS.length && !on;
         const hi = on && active.length < MONTHS.length;
-        return `<div class="gpmr" style="${dim ? 'opacity:.15;' : ''}${hi ? 'border-color:rgba(63,185,80,0.35);background:rgba(63,185,80,0.05);' : ''}">
+        return `<div class="gpmr" data-month-id="${m.id}" style="${dim ? 'opacity:.15;' : ''}${hi ? 'border-color:rgba(63,185,80,0.35);background:rgba(63,185,80,0.05);' : ''}">
       <div class="gpmr-mo">${m.lbl}</div>
       <div class="gpmr-vals">
         <div class="gstat"><div class="gstat-l">Sales</div><div class="gstat-v" style="color:var(--tx)">${fmtCr(m.rev)}</div></div>
@@ -2511,6 +2559,7 @@
       <div class="gbadge ${m.gpm >= 0 ? 'gbg' : 'gbr'}">${m.gpm >= 0 ? '+' : ''}${m.gpm.toFixed(1)}%</div>
     </div>`;
       }).join('');
+      scrollCardToRelevant(document.getElementById('gpmRows'), '[data-month-id="{id}"]', true, active);
 
       // P/S rows
       const bestPS = active.reduce((a, b) => b.ps < a.ps ? b : a, active[0]);
@@ -2520,12 +2569,13 @@
         const dim = active.length < MONTHS.length && !on;
         const pct = Math.min((m.ps / 1.3) * 100, 100);
         const col = m.ps > 1 ? 'rgba(248,81,73,0.75)' : m.ps < 0.8 ? 'rgba(63,185,80,0.75)' : 'rgba(56,139,253,0.65)';
-        return `<div class="rrow" style="${dim ? 'opacity:.15' : ''}">
+        return `<div class="rrow" data-month-id="${m.id}" style="${dim ? 'opacity:.15' : ''}">
       <div class="rmo">${m.lbl}</div>
       <div class="rtrack"><div class="rfill" style="width:${pct}%;background:${col}"></div><div class="rthresh"></div></div>
       <div class="rval ${m.ps > 1 ? 'neg' : 'pos'}">${m.ps.toFixed(3)}</div>
     </div>`;
       }).join('');
+      scrollCardToRelevant(document.getElementById('psRows'), '[data-month-id="{id}"]', true, active);
       document.querySelector('.ins-v.pos').textContent = `${bestPS.lbl} · ${bestPS.ps.toFixed(3)}`;
       document.querySelector('.ins-v.neg').textContent = `${worstPS.lbl} · ${worstPS.ps.toFixed(3)}`;
 
@@ -2533,11 +2583,12 @@
       document.getElementById('bepChips').innerHTML = MONTHS.map(m => {
         const on = active.some(a => a.id === m.id);
         const dim = active.length < MONTHS.length && !on;
-        return `<div class="bchip ${m.bep ? 'bca' : 'bcb'}" style="${dim ? 'opacity:.15' : ''}">
+        return `<div class="bchip ${m.bep ? 'bca' : 'bcb'}" data-month-id="${m.id}" style="${dim ? 'opacity:.15' : ''}">
       <div style="font-size:8px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;color:${m.bep ? 'rgba(63,185,80,0.7)' : 'rgba(248,81,73,0.7)'}">${m.lbl}</div>
       <div style="font-size:12px;font-weight:600;color:${m.bep ? 'var(--gn)' : 'var(--rd)'}">${m.bep ? 'Above ✓' : 'Below ✗'}</div>
     </div>`;
       }).join('');
+      scrollCardToRelevant(document.getElementById('bepChips'), '[data-month-id="{id}"]', false, active);
 
       // Product bars — recomputed from DB_PROD (real per-product line items
       // parsed out of the Sales Excel) for the active months. Previously
