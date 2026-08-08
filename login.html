@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SteamBuddy — Sign in</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #040810;
+      --bg2: #060d1a;
+      --s2: #0c1526;
+      --bd: rgba(56, 139, 253, 0.12);
+      --bd2: rgba(56, 139, 253, 0.22);
+      --bl: #58a6ff;
+      --rd: #f85149;
+      --rdd: rgba(248, 81, 73, 0.1);
+      --tx: #f0f6fc;
+      --tx2: #cdd9e5;
+      --txm: #909dab;
+      --fn: 'Inter', system-ui, sans-serif;
+      --r: 12px;
+      --r2: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--fn);
+      background: radial-gradient(circle at 30% 20%, var(--bg2), var(--bg) 60%);
+      color: var(--tx);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--s2);
+      border: 1px solid var(--bd2);
+      border-radius: var(--r);
+      padding: 32px 28px;
+      box-shadow: 0 0 0 1px rgba(56, 139, 253, 0.08), 0 16px 48px rgba(0, 0, 0, 0.6);
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--bl), #1f6feb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: -0.5px;
+    }
+
+    .brand {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .brand em {
+      font-style: normal;
+      color: var(--bl);
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    p.sub {
+      font-size: 12.5px;
+      color: var(--txm);
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      color: var(--txm);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--bd2);
+      border-radius: var(--r2);
+      color: var(--tx);
+      font-family: var(--fn);
+      font-size: 14px;
+      padding: 11px 13px;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus {
+      border-color: var(--bl);
+    }
+
+    button {
+      width: 100%;
+      background: var(--bl);
+      color: #04101f;
+      border: none;
+      border-radius: var(--r2);
+      font-family: var(--fn);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .err {
+      background: var(--rdd);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      color: var(--rd);
+      font-size: 12.5px;
+      border-radius: var(--r2);
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .err.show {
+      display: block;
+    }
+
+    .foot {
+      text-align: center;
+      font-size: 11px;
+      color: var(--txm);
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="logo-row">
+      <div class="logo">SB</div>
+      <div class="brand">STEAM <em>BUDDY</em></div>
+    </div>
+    <h1>Sign in</h1>
+    <p class="sub">This dashboard contains private business data. Enter your ID and password to continue.</p>
+    <div class="err" id="err">Incorrect ID or password.</div>
+    <form id="loginForm">
+      <label for="id">ID</label>
+      <input type="text" id="id" name="id" autocomplete="username" autofocus required>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+      <button type="submit" id="submitBtn">Sign in</button>
+    </form>
+    <div class="foot">SteamBuddy Business Intelligence · Agentica AI Labs</div>
+  </div>
+
+  <script>
+    // Plain fetch to a server-checked endpoint — the credentials are
+    // verified in api/login.js against Vercel environment variables, never
+    // in this page's own JS. This page only relays the form and reacts to
+    // the result; it has no way to grant access on its own, which is the
+    // whole point (a client-side-only check could be bypassed by anyone
+    // who opens dev tools).
+    const form = document.getElementById('loginForm');
+    const err = document.getElementById('err');
+    const btn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.classList.remove('show');
+      btn.disabled = true;
+      btn.textContent = 'Signing in…';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: document.getElementById('id').value,
+            password: document.getElementById('password').value,
+          }),
+        });
+        if (res.ok) {
+          // Redirect target ("next") is passed by middleware.js when it
+          // sends someone here, so a login mid-visit returns them to the
+          // page they were actually trying to reach, not always "/".
+          const params = new URLSearchParams(location.search);
+          location.href = params.get('next') || '/';
+        } else {
+          err.classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Sign in';
+        }
+      } catch (e) {
+        err.textContent = 'Could not reach the server. Please try again.';
+        err.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+      }
+    });
+  </script>
+</body>
+
+</html>

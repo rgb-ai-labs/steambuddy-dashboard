@@ -1,0 +1,6 @@
+{
+  "name": "steambuddy-dashboard",
+  "private": true,
+  "type": "module",
+  "description": "Static dashboard (index.html) with a login gate (middleware.js + api/) added on top. No build step, no framework — this file exists only so Vercel treats the .js files here as ES modules, which Edge Middleware requires."
+}
