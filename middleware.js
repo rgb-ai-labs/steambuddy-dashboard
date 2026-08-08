@@ -27,11 +27,27 @@ export default async function middleware(req) {
     return redirectToLogin(req);
   }
 
-  const cookie = req.cookies.get(SESSION_COOKIE)?.value;
+  const cookie = getCookie(req, SESSION_COOKIE);
   const ok = await verifySessionToken(cookie, secret);
   if (ok) return; // undefined/no return value = let the request through as normal
 
   return redirectToLogin(req);
+}
+
+// This is a plain static site, not a Next.js app, so Vercel hands the
+// middleware a standard Web API Request — there's no req.cookies.get()
+// convenience helper (that's a Next.js-only addition on top of Request).
+// Parsing the raw Cookie header ourselves is what actually works here.
+function getCookie(req, name) {
+  const header = req.headers.get('cookie') || '';
+  for (const part of header.split(';')) {
+    const eq = part.indexOf('=');
+    if (eq === -1) continue;
+    if (part.slice(0, eq).trim() === name) {
+      try { return decodeURIComponent(part.slice(eq + 1).trim()); } catch (e) { return part.slice(eq + 1).trim(); }
+    }
+  }
+  return undefined;
 }
 
 function redirectToLogin(req) {
