@@ -10,28 +10,27 @@
 import { SESSION_COOKIE, verifySessionToken } from './lib/auth.js';
 
 export const config = {
-  // Applies to everything EXCEPT the login page itself and the two API
-  // routes that handle signing in/out — those must stay reachable by a
-  // signed-out visitor, or nobody could ever log in.
-  matcher: ['/((?!login\\.html|api/login|api/logout|favicon\\.ico).*)'],
+  // Applies to everything EXCEPT the public landing page, the login page,
+  // and the two API routes that handle signing in/out — those must stay
+  // reachable by a signed-out visitor, or nobody could ever get in.
+  matcher: ['/((?!welcome\\.html|login\\.html|api/login|api/logout|favicon\\.ico).*)'],
 };
 
 export default async function middleware(req) {
   const secret = process.env.AUTH_SECRET;
   if (!secret) {
     // Fails CLOSED, not open: if the secret was never configured in
-    // Vercel's environment variables, every request gets sent to a login
-    // page that will itself fail clearly, rather than silently serving
-    // the dashboard unprotected because a token could never be verified
-    // as valid anyway once it exists.
-    return redirectToLogin(req);
+    // Vercel's environment variables, every request gets sent away rather
+    // than silently serving the dashboard unprotected because a token
+    // could never be verified as valid anyway once it exists.
+    return redirectToWelcome(req);
   }
 
   const cookie = getCookie(req, SESSION_COOKIE);
   const ok = await verifySessionToken(cookie, secret);
   if (ok) return; // undefined/no return value = let the request through as normal
 
-  return redirectToLogin(req);
+  return redirectToWelcome(req);
 }
 
 // This is a plain static site, not a Next.js app, so Vercel hands the
@@ -50,12 +49,14 @@ function getCookie(req, name) {
   return undefined;
 }
 
-function redirectToLogin(req) {
+function redirectToWelcome(req) {
   const url = new URL(req.url);
-  const loginUrl = new URL('/login.html', url.origin);
-  // So a signed-out visit to e.g. a deep link isn't just dumped on the
-  // homepage after logging in — login.html reads this back and redirects
-  // there once the login succeeds.
-  if (url.pathname !== '/') loginUrl.searchParams.set('next', url.pathname);
-  return Response.redirect(loginUrl, 307);
+  const welcomeUrl = new URL('/welcome.html', url.origin);
+  // Chained all the way through: welcome.html's Login button reads this
+  // back and forwards it to /login.html, which reads it again and returns
+  // here once the login succeeds — so a signed-out visit to a deep link
+  // (e.g. a bookmark) doesn't just dump someone on the homepage after they
+  // finally get logged in.
+  if (url.pathname !== '/') welcomeUrl.searchParams.set('next', url.pathname);
+  return Response.redirect(welcomeUrl, 307);
 }
